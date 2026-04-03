@@ -2,11 +2,13 @@ import express from 'express'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import connectDB from '../../shared/connectDB.js'
+import { metricsMiddleware, metricsHandler, reviewsTotal } from '../../shared/metrics.js'
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
+app.use(metricsMiddleware('review-service'))
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -34,6 +36,7 @@ app.post('/api/reviews', async (req, res) => {
   }
 
   const review = await Review.create({ productId, userId, userName, rating, comment })
+  reviewsTotal.inc()
   return res.status(201).json(review)
 })
 
@@ -50,9 +53,11 @@ app.get('/health', (_req, res) => {
   })
 })
 
+app.get('/metrics', metricsHandler)
+
 const start = async () => {
   await connectDB(process.env.REVIEW_DB_URI, 'ReviewDB')
-  const port = Number(process.env.PORT) || 5006
+  const port = Number(process.env.REVIEW_SERVICE_PORT || process.env.PORT) || 5006
   app.listen(port, '0.0.0.0', () => console.log(`review-service running on ${port}`))
 }
 

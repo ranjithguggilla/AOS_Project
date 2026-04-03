@@ -1,0 +1,260 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Business Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "Total Orders",
+      "type": "stat",
+      "targets": [{ "expr": "sum(orders_total)", "legendFormat": "Orders", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 2,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "Registered Users",
+      "type": "stat",
+      "targets": [{ "expr": "sum(users_registered_total)", "legendFormat": "Users", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 3,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "User Logins",
+      "type": "stat",
+      "targets": [{ "expr": "sum(users_logged_in_total)", "legendFormat": "Logins", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 4,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "Cart Additions",
+      "type": "stat",
+      "targets": [{ "expr": "sum(cart_additions_total)", "legendFormat": "Cart Adds", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "id": 5,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "Payments Processed",
+      "type": "stat",
+      "targets": [{ "expr": "sum(payments_total)", "legendFormat": "Payments", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "yellow", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "id": 6,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "Reviews Submitted",
+      "type": "stat",
+      "targets": [{ "expr": "sum(reviews_total)", "legendFormat": "Reviews", "refId": "A" }]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "Orders Over Time",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 10,
+      "options": { "tooltip": { "mode": "single" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "title": "Order Rate (per minute)",
+      "type": "timeseries",
+      "targets": [{ "expr": "rate(orders_total[1m])", "legendFormat": "orders/min", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 11,
+      "options": { "tooltip": { "mode": "single" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "title": "User Registration Rate (per minute)",
+      "type": "timeseries",
+      "targets": [{ "expr": "rate(users_registered_total[1m])", "legendFormat": "registrations/min", "refId": "A" }]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 102,
+      "title": "HTTP Traffic per Service",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
+      "id": 20,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] } },
+      "title": "HTTP Request Rate by Service",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(http_requests_total{service=\"api-gateway\"}[1m])", "legendFormat": "api-gateway", "refId": "A" },
+        { "expr": "rate(http_requests_total{service=\"user-service\"}[1m])", "legendFormat": "user-service", "refId": "B" },
+        { "expr": "rate(http_requests_total{service=\"product-service\"}[1m])", "legendFormat": "product-service", "refId": "C" },
+        { "expr": "rate(http_requests_total{service=\"cart-service\"}[1m])", "legendFormat": "cart-service", "refId": "D" },
+        { "expr": "rate(http_requests_total{service=\"order-service\"}[1m])", "legendFormat": "order-service", "refId": "E" },
+        { "expr": "rate(http_requests_total{service=\"payment-service\"}[1m])", "legendFormat": "payment-service", "refId": "F" },
+        { "expr": "rate(http_requests_total{service=\"review-service\"}[1m])", "legendFormat": "review-service", "refId": "G" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 103,
+      "title": "HTTP Response Status Codes",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 30,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "title": "Success (2xx) vs Error (4xx/5xx) Rates",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "sum(rate(http_requests_total{status_code=~\"2..\"}[1m]))", "legendFormat": "2xx success", "refId": "A" },
+        { "expr": "sum(rate(http_requests_total{status_code=~\"4..\"}[1m]))", "legendFormat": "4xx client error", "refId": "B" },
+        { "expr": "sum(rate(http_requests_total{status_code=~\"5..\"}[1m]))", "legendFormat": "5xx server error", "refId": "C" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 31,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] } },
+      "title": "P95 Request Duration by Service",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum by (service, le) (rate(http_request_duration_seconds_bucket[5m])))", "legendFormat": "{{service}} p95", "refId": "A" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "id": 104,
+      "title": "Node.js Process Health",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 },
+      "id": 40,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] } },
+      "title": "Heap Memory Used by Service",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "nodejs_heap_size_used_bytes{service=\"user-service\"}", "legendFormat": "user-service", "refId": "A" },
+        { "expr": "nodejs_heap_size_used_bytes{service=\"product-service\"}", "legendFormat": "product-service", "refId": "B" },
+        { "expr": "nodejs_heap_size_used_bytes{service=\"order-service\"}", "legendFormat": "order-service", "refId": "C" },
+        { "expr": "nodejs_heap_size_used_bytes{service=\"cart-service\"}", "legendFormat": "cart-service", "refId": "D" },
+        { "expr": "nodejs_heap_size_used_bytes{service=\"api-gateway\"}", "legendFormat": "api-gateway", "refId": "E" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 },
+      "id": 41,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] } },
+      "title": "Active Handles & Requests by Service",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "nodejs_active_handles_total", "legendFormat": "{{service}} handles", "refId": "A" },
+        { "expr": "nodejs_active_requests_total", "legendFormat": "{{service}} requests", "refId": "B" }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["microservices", "nodejs", "ecommerce"],
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "AOS Project — Microservices Dashboard",
+  "uid": "aos-microservices-v1",
+  "version": 1
+}

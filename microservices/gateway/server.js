@@ -1,11 +1,13 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import axios from 'axios'
+import { metricsMiddleware, metricsHandler } from '../shared/metrics.js'
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
+app.use(metricsMiddleware('api-gateway'))
 
 const serviceMap = {
   '/api/users': process.env.USER_SERVICE_URL || 'http://127.0.0.1:5001',
@@ -56,5 +58,7 @@ app.get('/health', (_req, res) => {
   res.json({ service: 'api-gateway', status: 'ok' })
 })
 
-const port = Number(process.env.PORT) || 9000
+app.get('/metrics', metricsHandler)
+
+const port = Number(process.env.API_GATEWAY_PORT || process.env.PORT) || 9000
 app.listen(port, '0.0.0.0', () => console.log(`api-gateway running on ${port}`))

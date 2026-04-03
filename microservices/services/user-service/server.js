@@ -4,11 +4,13 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
 import connectDB from '../../shared/connectDB.js'
+import { metricsMiddleware, metricsHandler, usersRegisteredTotal, usersLoggedInTotal } from '../../shared/metrics.js'
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
+app.use(metricsMiddleware('user-service'))
 
 const userSchema = new mongoose.Schema(
   {
@@ -90,6 +92,7 @@ app.post('/api/users/register', async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10)
   const user = await User.create({ name, email, password: hashedPassword })
+  usersRegisteredTotal.inc()
 
   return res.status(201).json(buildAuthResponse(user))
 })
@@ -108,6 +111,7 @@ app.post('/api/users', async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10)
   const user = await User.create({ name, email, password: hashedPassword })
+  usersRegisteredTotal.inc()
 
   return res.status(201).json(buildAuthResponse(user))
 })
@@ -124,6 +128,7 @@ app.post('/api/users/login', async (req, res) => {
   if (!isMatch) {
     return res.status(401).json({ message: 'Invalid credentials' })
   }
+  usersLoggedInTotal.inc()
 
   return res.json(buildAuthResponse(user))
 })
@@ -221,9 +226,11 @@ app.get('/health', (_req, res) => {
   })
 })
 
+app.get('/metrics', metricsHandler)
+
 const start = async () => {
   await connectDB(process.env.USER_DB_URI, 'UserDB')
-  const port = Number(process.env.PORT) || 5001
+  const port = Number(process.env.USER_SERVICE_PORT || process.env.PORT) || 5001
   app.listen(port, '0.0.0.0', () => console.log(`user-service running on ${port}`))
 }
 

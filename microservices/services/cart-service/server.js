@@ -3,11 +3,13 @@ import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import connectDB from '../../shared/connectDB.js'
 import { getCache, setCache, deleteCache } from '../../shared/redisClient.js'
+import { metricsMiddleware, metricsHandler, cartAdditionsTotal } from '../../shared/metrics.js'
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
+app.use(metricsMiddleware('cart-service'))
 
 const cartSchema = new mongoose.Schema(
   {
@@ -47,6 +49,7 @@ app.post('/api/cart/add', async (req, res) => {
 
   await cart.save()
   await deleteCache(getCartCacheKey(userId))
+  cartAdditionsTotal.inc()
   return res.status(201).json(cart)
 })
 
@@ -131,9 +134,11 @@ app.get('/health', (_req, res) => {
   })
 })
 
+app.get('/metrics', metricsHandler)
+
 const start = async () => {
   await connectDB(process.env.CART_DB_URI, 'CartDB')
-  const port = Number(process.env.PORT) || 5003
+  const port = Number(process.env.CART_SERVICE_PORT || process.env.PORT) || 5003
   app.listen(port, '0.0.0.0', () => console.log(`cart-service running on ${port}`))
 }
 

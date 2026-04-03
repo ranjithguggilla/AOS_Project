@@ -3,11 +3,13 @@ import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import axios from 'axios'
 import connectDB from '../../shared/connectDB.js'
+import { metricsMiddleware, metricsHandler, ordersTotal } from '../../shared/metrics.js'
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
+app.use(metricsMiddleware('order-service'))
 
 const orderSchema = new mongoose.Schema(
   {
@@ -94,6 +96,7 @@ app.post('/api/orders', async (req, res) => {
     draftOrder.paymentId = paymentResponse.data._id
     draftOrder.status = 'paid'
     await draftOrder.save()
+    ordersTotal.inc()
 
     return res.status(201).json(draftOrder)
   } catch (error) {
@@ -132,9 +135,11 @@ app.get('/health', (_req, res) => {
   })
 })
 
+app.get('/metrics', metricsHandler)
+
 const start = async () => {
   await connectDB(process.env.ORDER_DB_URI, 'OrderDB')
-  const port = Number(process.env.PORT) || 5004
+  const port = Number(process.env.ORDER_SERVICE_PORT || process.env.PORT) || 5004
   app.listen(port, '0.0.0.0', () => console.log(`order-service running on ${port}`))
 }
 

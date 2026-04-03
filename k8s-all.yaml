@@ -37,7 +37,8 @@ spec:
   selector:
     app: user-service
   ports:
-    - port: 5001
+    - name: http
+      port: 5001
       targetPort: 5001
 ---
 apiVersion: apps/v1
@@ -53,6 +54,10 @@ spec:
     metadata:
       labels:
         app: user-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5001"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: user-service
@@ -80,7 +85,8 @@ spec:
   selector:
     app: product-service
   ports:
-    - port: 5002
+    - name: http
+      port: 5002
       targetPort: 5002
 ---
 apiVersion: apps/v1
@@ -96,6 +102,10 @@ spec:
     metadata:
       labels:
         app: product-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5002"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: product-service
@@ -123,7 +133,8 @@ spec:
   selector:
     app: cart-service
   ports:
-    - port: 5003
+    - name: http
+      port: 5003
       targetPort: 5003
 ---
 apiVersion: apps/v1
@@ -139,6 +150,10 @@ spec:
     metadata:
       labels:
         app: cart-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5003"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: cart-service
@@ -166,7 +181,8 @@ spec:
   selector:
     app: order-service
   ports:
-    - port: 5004
+    - name: http
+      port: 5004
       targetPort: 5004
 ---
 apiVersion: apps/v1
@@ -182,6 +198,10 @@ spec:
     metadata:
       labels:
         app: order-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5004"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: order-service
@@ -207,7 +227,8 @@ spec:
   selector:
     app: payment-service
   ports:
-    - port: 5005
+    - name: http
+      port: 5005
       targetPort: 5005
 ---
 apiVersion: apps/v1
@@ -223,6 +244,10 @@ spec:
     metadata:
       labels:
         app: payment-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5005"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: payment-service
@@ -248,7 +273,8 @@ spec:
   selector:
     app: review-service
   ports:
-    - port: 5006
+    - name: http
+      port: 5006
       targetPort: 5006
 ---
 apiVersion: apps/v1
@@ -264,6 +290,10 @@ spec:
     metadata:
       labels:
         app: review-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5006"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: review-service
@@ -290,7 +320,8 @@ spec:
   selector:
     app: api-gateway
   ports:
-    - port: 9000
+    - name: http
+      port: 9000
       targetPort: 9000
       nodePort: 30007
 ---
@@ -307,6 +338,10 @@ spec:
     metadata:
       labels:
         app: api-gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9000"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
         - name: api-gateway
