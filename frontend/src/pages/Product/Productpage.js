@@ -183,15 +183,15 @@ const submithanlder = () =>{
 
           <div className = "social-links">
             <p>Share On: </p>
-            <Link className = 'social' to = "#">
+            <a className='social' href="#" onClick={(e) => e.preventDefault()}>
               <i> <IoLogoFacebook size='20'/></i>
-            </Link>
-            <Link className = 'social' href = "#">
+            </a>
+            <a className='social' href="#" onClick={(e) => e.preventDefault()}>
               <i><AiFillTwitterCircle size='20'/></i>
-            </Link>
-            <Link  className = 'social' href = "#">
+            </a>
+            <a className='social' href="#" onClick={(e) => e.preventDefault()}>
               <i><AiFillInstagram size='20'/> </i>
-            </Link>
+            </a>
           </div>
         </div>
       </div>

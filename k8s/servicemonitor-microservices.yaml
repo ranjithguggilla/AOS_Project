@@ -8,12 +8,12 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - default
+      - shop-micro
   selector:
     matchLabels:
       app: api-gateway
   endpoints:
-    - targetPort: 9000
+    - port: http
       path: /metrics
       interval: 15s
       scheme: http
@@ -28,12 +28,12 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - default
+      - shop-micro
   selector:
     matchLabels:
       app: user-service
   endpoints:
-    - targetPort: 5001
+    - port: http
       path: /metrics
       interval: 15s
       scheme: http
@@ -48,12 +48,12 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - default
+      - shop-micro
   selector:
     matchLabels:
       app: product-service
   endpoints:
-    - targetPort: 5002
+    - port: http
       path: /metrics
       interval: 15s
       scheme: http
@@ -68,12 +68,12 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - default
+      - shop-micro
   selector:
     matchLabels:
       app: cart-service
   endpoints:
-    - targetPort: 5003
+    - port: http
       path: /metrics
       interval: 15s
       scheme: http
@@ -88,12 +88,12 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - default
+      - shop-micro
   selector:
     matchLabels:
       app: order-service
   endpoints:
-    - targetPort: 5004
+    - port: http
       path: /metrics
       interval: 15s
       scheme: http
@@ -108,12 +108,12 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - default
+      - shop-micro
   selector:
     matchLabels:
       app: payment-service
   endpoints:
-    - targetPort: 5005
+    - port: http
       path: /metrics
       interval: 15s
       scheme: http
@@ -128,12 +128,12 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - default
+      - shop-micro
   selector:
     matchLabels:
       app: review-service
   endpoints:
-    - targetPort: 5006
+    - port: http
       path: /metrics
       interval: 15s
       scheme: http

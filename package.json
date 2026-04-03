@@ -109,6 +109,8 @@
   },
   "scripts": {
     "start": "npm run micro:dev",
+    "kill:ports": "for p in 3000 8000 9000 5001 5002 5003 5004 5005 5006; do ids=$(lsof -ti tcp:$p); if [ -n \"$ids\" ]; then kill -9 $ids; fi; done",
+    "dev:clean": "npm run kill:ports && npm start",
     "start:monolith": "node backend/server",
     "server": "node backend/server",
     "server:plain": "node backend/server",

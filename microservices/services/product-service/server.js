@@ -122,6 +122,10 @@ app.get('/api/products', async (req, res) => {
 })
 
 app.get('/api/products/:id', async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ message: 'Product not found' })
+  }
+
   const cacheKey = `product:detail:${req.params.id}`
   const cached = await getCache(cacheKey)
   if (cached) {
