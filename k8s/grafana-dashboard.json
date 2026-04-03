@@ -245,6 +245,125 @@
         { "expr": "nodejs_active_handles_total", "legendFormat": "{{service}} handles", "refId": "A" },
         { "expr": "nodejs_active_requests_total", "legendFormat": "{{service}} requests", "refId": "B" }
       ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
+      "id": 105,
+      "title": "Kubernetes Resilience & Scaling",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 42 },
+      "id": 50,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "Desired Replicas",
+      "type": "stat",
+      "targets": [{ "expr": "sum(kube_deployment_spec_replicas{namespace=\"shop-micro\",deployment=~\"api-gateway|user-service|product-service|cart-service|order-service|payment-service|review-service\"})", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 42 },
+      "id": 51,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "Available Replicas",
+      "type": "stat",
+      "targets": [{ "expr": "sum(kube_deployment_status_replicas_available{namespace=\"shop-micro\",deployment=~\"api-gateway|user-service|product-service|cart-service|order-service|payment-service|review-service\"})", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 80 },
+              { "color": "green", "value": 100 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 42 },
+      "id": 52,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "Replica Availability",
+      "type": "stat",
+      "targets": [{ "expr": "100 * sum(kube_deployment_status_replicas_available{namespace=\"shop-micro\",deployment=~\"api-gateway|user-service|product-service|cart-service|order-service|payment-service|review-service\"}) / clamp_min(sum(kube_deployment_spec_replicas{namespace=\"shop-micro\",deployment=~\"api-gateway|user-service|product-service|cart-service|order-service|payment-service|review-service\"}), 1)", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 3 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 42 },
+      "id": 53,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "Total Pod Restarts",
+      "type": "stat",
+      "targets": [{ "expr": "sum(kube_pod_container_status_restarts_total{namespace=\"shop-micro\"})", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 46 },
+      "id": 54,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] } },
+      "title": "Desired vs Available Replicas by Deployment",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "kube_deployment_spec_replicas{namespace=\"shop-micro\",deployment=~\"api-gateway|user-service|product-service|cart-service|order-service|payment-service|review-service\"}", "legendFormat": "desired {{deployment}}", "refId": "A" },
+        { "expr": "kube_deployment_status_replicas_available{namespace=\"shop-micro\",deployment=~\"api-gateway|user-service|product-service|cart-service|order-service|payment-service|review-service\"}", "legendFormat": "available {{deployment}}", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 46 },
+      "id": 55,
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "showUnfilled": true
+      },
+      "title": "Pod Restarts by Pod",
+      "type": "bargauge",
+      "targets": [
+        { "expr": "sum(kube_pod_container_status_restarts_total{namespace=\"shop-micro\"}) by (pod)", "legendFormat": "{{pod}}", "refId": "A" }
+      ]
     }
   ],
   "refresh": "10s",
