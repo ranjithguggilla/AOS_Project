@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: BitForge Dashboards
+    orgId: 1
+    folder: BitForge
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /var/lib/grafana/dashboards
+

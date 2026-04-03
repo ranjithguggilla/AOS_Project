@@ -1,158 +1,186 @@
-# Mern-Ecommerce-website 
-[![Generic badge](https://img.shields.io/badge/Responsive-Yes-<COLOR>.svg)](https://eastclothing.herokuapp.com/) 
-## E-Commerce Website Using MERN STACK. 
+# BitForge — DIY Maker Kits Marketplace
 
+**Course context:** This repository is the **AOS (Advanced Operating Systems) project** deliverable for **Project-3 — Kubernetes cluster management**: a demonstrable **microservices** stack with **Docker Compose** for local orchestration, **Kubernetes** manifests under `k8s/`, and **observability** suitable for cluster operations review.
 
+**BitForge** is a full-stack **microservices** platform for a DIY maker kits marketplace built around an original product concept focused on **kits, customization, and maker workflows**, not a generic retail clone. The **center of gravity is the backend**: an **nginx API gateway**, independently deployable Node.js services, **MongoDB** with database per service boundaries, **Redis**, structured **observability** (Prometheus, Grafana, Jaeger), and optional **Kubernetes** / Terraform for deployment so, the system reads as a **demonstrable distributed architecture** with **health checks, metrics, tracing, and gateway controlled ingress** supporting operational safety and reviewability.
 
-#### The main objetif behind this projet was to build an Ecommerce website that handles both sides client and admin using the next technologies :  
+**High-level flow:** `React (Vite)` → `nginx :8080` → `microservices` → `MongoDB` / `Redis`
 
- 1. Mongo Db  
- 
- 2. Expressjs  
- 
- 3. Reactjs  
- 4. Nodejs  
- 5. Chakra Ui  
- 6. Redux  
+---
 
-Here is a Demo : [Demo](https://eastclothing.herokuapp.com/)
+## Contents
 
-If you are logged in as an admin a button in navbar will show up which gives you controll on your products,users and orders.
+- [Architecture](#architecture)
+- [Repository layout](#repository-layout)
+- [Prerequisites](#prerequisites)
+- [Run locally](#run-locally)
+- [Health checks & monitoring](#health-checks--monitoring)
+- [Configuration & security](#configuration--security)
+- [Testing & CI](#testing--ci)
+- [Kubernetes & Terraform](#kubernetes--terraform)
+- [Documentation](#documentation)
+- [Source repository](#source-repository)
 
-- The button :
-<img width = "800" src="https://i.imgur.com/a7YFo86.png"/>  
+---
 
-- Products :
-<img width = "800" src="https://i.imgur.com/AMrzaZW.png"/>
+## Architecture
 
-- Add or Edit :
-<img width = "300" src="https://i.imgur.com/p725woy.png"/>
-<img width = "300" src="https://i.imgur.com/80E5x6p.png"/>
+| Layer | Implementation |
+|--------|------------------|
+| **Client** | React 18 + TypeScript, Vite (`frontend/`) |
+| **API gateway** | nginx (`gateway/nginx.conf`) — **not** Kong in this branch |
+| **Services** | Node.js + Express — see `microservices/*` |
+| **Data** | MongoDB 7 — logical **per-service databases** on one instance (`UserDB`, `ProductDB`, …) |
+| **Cache** | Redis — hot-path caching (e.g. product list); auth is **JWT** (stateless) |
+| **Observability** | OpenTelemetry → collector → **Jaeger**; **Prometheus** scrapes `/metrics`; **Grafana** dashboards |
 
-- Users :
-<img width = "800" src="https://i.imgur.com/sCdikSM.png"/>  
+Additional architecture notes and diagram reconciliation are in [`docs/REFERENCE_RECONCILIATION.md`](docs/REFERENCE_RECONCILIATION.md).
 
-- Edit :
-<img width = "300" src="https://i.imgur.com/U7LXWm0.png"/>
+---
 
-- Orders :
-<img width = "800" src="https://i.imgur.com/wyyvpYQ.png"/>
+## Repository layout
 
-- After clicking on details you can deliver the order if its paid :
-<img width = "800" src="https://i.imgur.com/Q9mX0X5.png"/>
+| Path | Purpose |
+|------|---------|
+| `frontend/` | Vite app, proxies `/api` to gateway port 8080 in dev |
+| `gateway/` | nginx configuration for routing, `/health`, `/api/*` |
+| `microservices/` | `user`, `product`, `cart`, `order`, `payment`, `review`, `forum` services |
+| `infra/` | Prometheus, Grafana, OTel collector configs |
+| `k8s/` | Kubernetes deployments, configmaps, HPA-oriented material |
+| `infra/terraform/gke/` | GKE baseline (optional cloud deployment) |
+| `.github/workflows/` | CI — lint, tests, integration gates |
+| `docs/` | Build blueprint, deployment notes, evidence docs |
+| `docker-compose.yml` | Full local stack (gateway, services, Mongo, Redis, Jaeger, Prometheus, Grafana) |
 
-[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com) [![forthebadge](https://forthebadge.com/images/badges/made-with-javascript.svg)](https://forthebadge.com)
-[![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/abourhjoul/)
+---
 
-## Microservices Backend (New)
+## Prerequisites
 
-The project now includes a microservices backend under `microservices/`:
+- **Docker Desktop** (or Docker Engine) + **Docker Compose v2**
+- **Node.js 18+** and npm (frontend and local tooling)
 
-- API Gateway
-- User Service
-- Product Service
-- Cart Service
-- Order Service
-- Payment Service
-- Review Service
+---
 
-Each service owns a dedicated database namespace:
+## Run locally
 
-- User Service -> `UserDB`
-- Product Service -> `products`
-- Cart Service -> `CartDB`
-- Order Service -> `OrderDB`
-- Payment Service -> `PaymentDB`
-- Review Service -> `ReviewDB`
-
-### Request Flow
-
-`Frontend -> API Gateway -> Microservices`
-
-Inter-service communication already implemented:
-
-- Order Service -> Product Service (`/api/products/internal/stock-check`, `/api/products/internal/decrement-stock`)
-- Order Service -> Payment Service (`/api/payments/process`)
-
-Gateway routing:
-
-- `/api/users` -> User Service
-- `/api/products` -> Product Service
-- `/api/cart` -> Cart Service
-- `/api/orders` -> Order Service
-- `/api/payments` -> Payment Service
-- `/api/reviews` -> Review Service
-
-### New APIs
-
-- Product Search: `GET /api/products/search?keyword=`
-- Product Category Filtering: `GET /api/products?category=sensors`
-- Cart APIs:
-	- `POST /api/cart/add`
-	- `DELETE /api/cart/remove`
-	- `PUT /api/cart/update`
-	- `GET /api/cart/:userId`
-- Order Tracking APIs:
-	- `POST /api/orders`
-	- `GET /api/orders/:userId`
-	- `PUT /api/orders/status`
-- Review APIs:
-	- `POST /api/reviews`
-
-## Deployment & Infra (Presentation Enhancements)
-
-### 1) Docker / Docker Compose
-
-- Base image: `Dockerfile.micro`
-- Orchestration: `docker-compose.yml`
-- Services included: gateway + user/product/cart/order/payment/review + redis
-
-Run:
+### 1. Backend, gateway, databases, observability
 
 ```bash
+cd <repository-root>   # folder where this README and docker-compose.yml live
 docker compose up --build
 ```
 
-### 2) Redis (Cache-ready)
+Leave this running. First start builds images and may take several minutes.
 
-- `docker-compose.yml` includes a `redis` service
-- `REDIS_URL` is wired for services (`redis://redis:6379`)
-- Implemented cache usage:
-	- Product Service: caches `GET /api/products`, `GET /api/products/search`, `GET /api/products/:id`
-	- Cart Service: caches `GET /api/cart/:userId`
-- Cache invalidation:
-	- Product caches are invalidated on product create and stock decrement
-	- Cart cache is invalidated on add/remove/update/clear
+If Compose fails with **“port is already allocated”** (often **6379** or **4317**), stop other stacks (`docker compose down` in other project folders) or run **`docker compose down`** here and retry. Redis is published on host **6380** (not 6379) to reduce clashes; apps inside Docker still use **`redis:6379`**.
 
-### 3) Kubernetes Manifests
+### 2. Frontend (separate terminal)
 
-See `k8s/`:
+```bash
+cd <repository-root>/frontend
+npm install
+npm run dev
+```
 
-- `namespace.yaml`
-- `configmap.yaml`
-- `secret.example.yaml`
-- `deployments.yaml`
+Open the URL Vite prints (default **http://localhost:5173**). API calls go to **http://localhost:8080** via the Vite dev proxy (`vite.config.ts`).
 
-Quick start:
+### Useful URLs (compose running)
+
+| Endpoint | Purpose |
+|----------|---------|
+| http://localhost:8080/health | Gateway liveness |
+| http://localhost:8080/health/details | Gateway + pointers to upstream checks |
+| http://localhost:8080/health/upstream/product | Example: product-service through gateway |
+| http://localhost:9090 | Prometheus |
+| http://localhost:3000 | Grafana (`admin` / `admin` in compose) |
+| http://localhost:16686 | Jaeger UI |
+
+**Direct service ports (debugging):** user `8001`, product `8002`, order `8003`, payment `8004`, forum `8005`, cart `8006`, review `8007`.
+
+### Demo accounts
+
+- **Admin:** `admin@maker.local` / `admin123` (when seeded via user-service)
+- Register additional users at `/register`
+
+### Product catalog seeding
+
+Product data is loaded from `microservices/product-service/seed.js` when the product service starts. If you use **Docker’s MongoDB** and also run Mongo on the host, ensure you seed the **same** database the app uses. A helper script exists: `microservices/product-service/scripts/syncSeed.js` (see `npm run seed` in that package). Flush Redis keys for `products:*` after catalog changes if responses look stale.
+
+---
+
+## Health checks & monitoring
+
+- **Gateway:** `GET /health`, `GET /health/ready`, `GET /health/upstream/{user|product|order|payment|cart|review|forum}`
+- **Each microservice:** `GET /health` and `GET /metrics` (Prometheus)
+- **Prometheus** scrapes all services and nginx metrics (see `infra/prometheus/prometheus.yml`)
+- **Grafana** is pre-provisioned with a Prometheus datasource (`infra/grafana/provisioning/`)
+
+Use **Prometheus → Status → Targets** to confirm all jobs are **UP** when diagnosing the stack.
+
+---
+
+## Configuration & security
+
+- Copy patterns from `k8s/secret.example.yaml` for real clusters; **do not** commit live secrets.
+- Compose uses `JWT_SECRET` and `SERVICE_TOKEN` defaults suitable **only for local development** — change them for any shared or production environment.
+- `.env` files are gitignored; use environment variables or compose overrides for secrets.
+
+---
+
+## Testing & CI
+
+- **Frontend:** Vitest / Testing Library; **E2E:** Playwright (`frontend/e2e/`)
+- **Services:** Node’s built-in test runner where configured (`npm test` per service)
+- **Integration:** Gateway and checkout flows under `tests/` and CI workflow
+- **CI:** `.github/workflows/ci.yml` — install, lint, unit tests, build, integration where enabled
+
+Run locally before pushing:
+
+```bash
+# Example: frontend
+cd frontend && npm run lint && npm test
+
+# Example: product-service
+cd microservices/product-service && npm test
+```
+
+---
+
+## Kubernetes & Terraform
 
 ```bash
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/secret.yaml
+# Use a real Secret in production — see k8s/secret.example.yaml
 kubectl apply -f k8s/deployments.yaml
 ```
-	- `GET /api/reviews/:productId`
 
-### Service Communication
+Details: [`k8s/README.md`](k8s/README.md). GKE-oriented notes: [`docs/GKE_DEPLOYMENT.md`](docs/GKE_DEPLOYMENT.md). Terraform: `infra/terraform/gke/` (see `terraform.tfvars.example`).
 
-- `Order Service -> Product Service` for stock check/decrement
-- `Order Service -> Payment Service` for payment processing
+---
 
-### Run Microservices + Frontend
+## Documentation
 
-From project root:
+| Document | Description |
+|----------|-------------|
+| [`docs/REFERENCE_RECONCILIATION.md`](docs/REFERENCE_RECONCILIATION.md) | Line-by-line alignment with course artifacts |
+| [`docs/GKE_DEPLOYMENT.md`](docs/GKE_DEPLOYMENT.md) | Cluster deployment notes |
+| [`docs/LOAD_HPA_EVIDENCE.md`](docs/LOAD_HPA_EVIDENCE.md) | Load / HPA evidence |
+| [`docs/BLUEPRINT_ALIGNMENT_STATUS.md`](docs/BLUEPRINT_ALIGNMENT_STATUS.md) | Feature tracking |
 
-`npm run micro:dev`
+---
 
-This starts all services, gateway, and frontend.
+## Source repository
 
+Canonical remote: **[github.com/ranjithguggilla/AOS_Project](https://github.com/ranjithguggilla/AOS_Project)**
+
+```bash
+git clone https://github.com/ranjithguggilla/AOS_Project.git
+cd AOS_Project
+```
+
+---
+
+## Project positioning
+
+BitForge targets **maker kits and hands-on builds**—a different problem space than mass-market e‑commerce (e.g. broad retail catalogs). The implementation is designed to **showcase microservices in depth**: clear service boundaries, gateway-mediated APIs, resilient patterns (caching, idempotency where applicable), **JWT + service-to-service auth**, and **full-stack observability** so behavior under load and failure modes can be inspected—not a thin CRUD demo. That backend emphasis is intentional: it is what distinguishes this platform architecturally from “another online shop” and keeps the demonstration **strong, inspectable, and safety-conscious** for real distributed-systems practice.

@@ -1,20 +1,333 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: shop-config
-  namespace: shop-micro
+  name: maker-config
+  namespace: maker-platform
 data:
-  API_GATEWAY_PORT: "9000"
-  USER_SERVICE_PORT: "5001"
-  PRODUCT_SERVICE_PORT: "5002"
-  CART_SERVICE_PORT: "5003"
-  ORDER_SERVICE_PORT: "5004"
-  PAYMENT_SERVICE_PORT: "5005"
-  REVIEW_SERVICE_PORT: "5006"
-  USER_SERVICE_URL: "http://user-service:5001"
-  PRODUCT_SERVICE_URL: "http://product-service:5002"
-  CART_SERVICE_URL: "http://cart-service:5003"
-  ORDER_SERVICE_URL: "http://order-service:5004"
-  PAYMENT_SERVICE_URL: "http://payment-service:5005"
-  REVIEW_SERVICE_URL: "http://review-service:5006"
-  REDIS_URL: "redis://redis:6379"
+  USER_MONGO_URI: "mongodb://mongo:27017/UserDB"
+  PRODUCT_MONGO_URI: "mongodb://mongo:27017/ProductDB"
+  CART_MONGO_URI: "mongodb://mongo:27017/CartDB"
+  ORDER_MONGO_URI: "mongodb://mongo:27017/OrderDB"
+  PAYMENT_MONGO_URI: "mongodb://mongo:27017/PaymentDB"
+  REVIEW_MONGO_URI: "mongodb://mongo:27017/ReviewDB"
+  FORUM_MONGO_URI: "mongodb://mongo:27017/ForumDB"
+  REDIS_URL: "redis://redis:6379/0"
+  PRODUCT_SERVICE_URL: "http://product-service:8002"
+  ORDER_SERVICE_URL: "http://order-service:8003"
+  PAYMENT_SERVICE_URL: "http://payment-service:8004"
+  SERVICE_TOKEN: "dev-internal-token"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-gateway-config
+  namespace: maker-platform
+data:
+  nginx.conf: |
+    worker_processes 1;
+    events { worker_connections 1024; }
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+      sendfile on;
+      map $http_x_request_id $req_id {
+        default $http_x_request_id;
+        ""      $request_id;
+      }
+      limit_req_zone $binary_remote_addr zone=api_general:10m rate=10r/s;
+      limit_req_zone $binary_remote_addr zone=api_auth:10m rate=3r/s;
+      limit_req_zone $binary_remote_addr zone=api_checkout:10m rate=5r/s;
+      limit_req_status 429;
+      server {
+        listen 8080;
+        server_name _;
+        add_header X-Request-Id $req_id always;
+        location = /_auth {
+          internal;
+          proxy_pass http://user-service:8001/api/users/verify-token;
+          proxy_pass_request_body off;
+          proxy_set_header Content-Length "";
+          proxy_set_header Authorization $http_authorization;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location = / {
+          default_type text/html;
+          return 200 '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BitForge Gateway</title><style>body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#0b1220,#1f3b73,#7c3aed,#06b6d4);min-height:100vh;color:#fff}.wrap{max-width:980px;margin:0 auto;padding:36px}.card{background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.28);border-radius:16px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.25)}h1{margin:0 0 8px;font-size:38px}.sub{opacity:.9;margin:0 0 18px}</style></head><body><div class="wrap"><div class="card"><h1>BitForge Gateway</h1><p class="sub">Gateway UI page (probes remain JSON).</p><p><a href="/health" style="color:#fff">/health</a> • <a href="/health/details" style="color:#fff">/health/details</a></p></div></div></body></html>';
+        }
+        location = /api/users/login {
+          limit_req zone=api_auth burst=6 nodelay;
+          proxy_pass http://user-service:8001/api/users/login;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location = /api/users/register {
+          limit_req zone=api_auth burst=6 nodelay;
+          proxy_pass http://user-service:8001/api/users/register;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location = /api/users/verify-token { return 404; }
+        location /api/users {
+          limit_req zone=api_auth burst=6 nodelay;
+          auth_request /_auth;
+          auth_request_set $auth_user_id $upstream_http_x_user_id;
+          auth_request_set $auth_user_email $upstream_http_x_user_email;
+          auth_request_set $auth_user_name $upstream_http_x_user_name;
+          auth_request_set $auth_user_admin $upstream_http_x_user_admin;
+          proxy_pass http://user-service:8001/api/users;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header Authorization $http_authorization;
+          proxy_set_header X-User-Id $auth_user_id;
+          proxy_set_header X-User-Email $auth_user_email;
+          proxy_set_header X-User-Name $auth_user_name;
+          proxy_set_header X-User-Admin $auth_user_admin;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location ^~ /api/products/internal/ { return 403; }
+        location /api/products {
+          limit_req zone=api_general burst=20 nodelay;
+          proxy_pass http://product-service:8002/api/products;
+          proxy_set_header Host $host;
+          proxy_set_header Authorization $http_authorization;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location /api/cart {
+          limit_req zone=api_general burst=20 nodelay;
+          auth_request /_auth;
+          auth_request_set $auth_user_id $upstream_http_x_user_id;
+          auth_request_set $auth_user_email $upstream_http_x_user_email;
+          auth_request_set $auth_user_name $upstream_http_x_user_name;
+          auth_request_set $auth_user_admin $upstream_http_x_user_admin;
+          proxy_pass http://cart-service:8006/api/cart;
+          proxy_set_header Host $host;
+          proxy_set_header Authorization $http_authorization;
+          proxy_set_header X-User-Id $auth_user_id;
+          proxy_set_header X-User-Email $auth_user_email;
+          proxy_set_header X-User-Name $auth_user_name;
+          proxy_set_header X-User-Admin $auth_user_admin;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location ~ ^/api/orders/.*/(pay|cancel)$ { return 403; }
+        location /api/orders {
+          limit_req zone=api_checkout burst=10 nodelay;
+          auth_request /_auth;
+          auth_request_set $auth_user_id $upstream_http_x_user_id;
+          auth_request_set $auth_user_email $upstream_http_x_user_email;
+          auth_request_set $auth_user_name $upstream_http_x_user_name;
+          auth_request_set $auth_user_admin $upstream_http_x_user_admin;
+          proxy_pass http://order-service:8003/api/orders;
+          proxy_set_header Host $host;
+          proxy_set_header Authorization $http_authorization;
+          proxy_set_header X-User-Id $auth_user_id;
+          proxy_set_header X-User-Email $auth_user_email;
+          proxy_set_header X-User-Name $auth_user_name;
+          proxy_set_header X-User-Admin $auth_user_admin;
+          proxy_set_header Idempotency-Key $http_idempotency_key;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location /api/payments {
+          limit_req zone=api_checkout burst=10 nodelay;
+          auth_request /_auth;
+          auth_request_set $auth_user_id $upstream_http_x_user_id;
+          auth_request_set $auth_user_email $upstream_http_x_user_email;
+          auth_request_set $auth_user_name $upstream_http_x_user_name;
+          auth_request_set $auth_user_admin $upstream_http_x_user_admin;
+          proxy_pass http://payment-service:8004/api/payments;
+          proxy_set_header Host $host;
+          proxy_set_header Authorization $http_authorization;
+          proxy_set_header X-User-Id $auth_user_id;
+          proxy_set_header X-User-Email $auth_user_email;
+          proxy_set_header X-User-Name $auth_user_name;
+          proxy_set_header X-User-Admin $auth_user_admin;
+          proxy_set_header Idempotency-Key $http_idempotency_key;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location /api/reviews {
+          limit_req zone=api_general burst=20 nodelay;
+          proxy_pass http://review-service:8007/api/reviews;
+          proxy_set_header Host $host;
+          proxy_set_header Authorization $http_authorization;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location /api/forum {
+          limit_req zone=api_general burst=20 nodelay;
+          proxy_pass http://forum-service:8005/api/forum;
+          proxy_set_header Host $host;
+          proxy_set_header Authorization $http_authorization;
+          proxy_set_header X-Request-Id $req_id;
+        }
+        location /nginx_status { stub_status; access_log off; allow all; }
+        location = /health { default_type application/json; return 200 '{"status":"ok","gateway":"nginx"}'; }
+        location = /health/live { default_type application/json; return 200 '{"status":"ok","gateway":"nginx","live":true}'; }
+        location = /health/ready { default_type application/json; return 200 '{"status":"ok","gateway":"nginx","ready":true,"check":"Use /health/upstream/{user|product|order|payment|cart|review|forum} for per-service readiness"}'; }
+        location = /health/details { default_type application/json; return 200 '{"status":"ok","gateway":"nginx","version":"1.0.0","live":true,"ready":true,"timestamp":"$time_iso8601","requestId":"$req_id","upstreamChecks":{"user":"/health/upstream/user","product":"/health/upstream/product","order":"/health/upstream/order","payment":"/health/upstream/payment","cart":"/health/upstream/cart","review":"/health/upstream/review","forum":"/health/upstream/forum"}}'; }
+        location = /health/upstream/user { proxy_pass http://user-service:8001/health; proxy_set_header Host $host; proxy_set_header X-Request-Id $req_id; }
+        location = /health/upstream/product { proxy_pass http://product-service:8002/health; proxy_set_header Host $host; proxy_set_header X-Request-Id $req_id; }
+        location = /health/upstream/order { proxy_pass http://order-service:8003/health; proxy_set_header Host $host; proxy_set_header X-Request-Id $req_id; }
+        location = /health/upstream/payment { proxy_pass http://payment-service:8004/health; proxy_set_header Host $host; proxy_set_header X-Request-Id $req_id; }
+        location = /health/upstream/cart { proxy_pass http://cart-service:8006/health; proxy_set_header Host $host; proxy_set_header X-Request-Id $req_id; }
+        location = /health/upstream/review { proxy_pass http://review-service:8007/health; proxy_set_header Host $host; proxy_set_header X-Request-Id $req_id; }
+        location = /health/upstream/forum { proxy_pass http://forum-service:8005/health; proxy_set_header Host $host; proxy_set_header X-Request-Id $req_id; }
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: maker-platform
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      batch:
+        timeout: 5s
+        send_batch_size: 1024
+    exporters:
+      logging:
+        verbosity: detailed
+      otlp/jaeger:
+        endpoint: jaeger:4317
+        tls:
+          insecure: true
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging, otlp/jaeger]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: maker-platform
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+      - job_name: prometheus
+        static_configs:
+          - targets: ["prometheus:9090"]
+      - job_name: nginx-exporter
+        static_configs:
+          - targets: ["nginx-exporter:9113"]
+      - job_name: user-service
+        metrics_path: /metrics
+        static_configs:
+          - targets: ["user-service:8001"]
+      - job_name: product-service
+        metrics_path: /metrics
+        static_configs:
+          - targets: ["product-service:8002"]
+      - job_name: order-service
+        metrics_path: /metrics
+        static_configs:
+          - targets: ["order-service:8003"]
+      - job_name: payment-service
+        metrics_path: /metrics
+        static_configs:
+          - targets: ["payment-service:8004"]
+      - job_name: cart-service
+        metrics_path: /metrics
+        static_configs:
+          - targets: ["cart-service:8006"]
+      - job_name: review-service
+        metrics_path: /metrics
+        static_configs:
+          - targets: ["review-service:8007"]
+      - job_name: forum-service
+        metrics_path: /metrics
+        static_configs:
+          - targets: ["forum-service:8005"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: maker-platform
+data:
+  datasource.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+        editable: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: maker-platform
+data:
+  dashboard.yml: |
+    apiVersion: 1
+    providers:
+      - name: BitForge Dashboards
+        orgId: 1
+        folder: BitForge
+        type: file
+        disableDeletion: true
+        editable: false
+        options:
+          path: /var/lib/grafana/dashboards
+  bitforge-overview.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }, "overrides": [] },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "id": 1,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+          "targets": [ { "expr": "sum by (service) (rate(http_request_duration_seconds_count[5m]))", "refId": "A" } ],
+          "title": "Request Rate by Service",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" }, "overrides": [] },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "id": 2,
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+          "targets": [ { "expr": "histogram_quantile(0.95, sum by (le, service) (rate(http_request_duration_seconds_bucket[5m])))", "refId": "A" } ],
+          "title": "p95 Latency by Service",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "style": "dark",
+      "tags": ["bitforge","microservices"],
+      "templating": { "list": [] },
+      "time": { "from": "now-30m", "to": "now" },
+      "timepicker": {},
+      "timezone": "",
+      "title": "BitForge Overview",
+      "uid": "bitforge-overview",
+      "version": 1,
+      "weekStart": ""
+    }
