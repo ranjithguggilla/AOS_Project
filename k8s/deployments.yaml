@@ -56,7 +56,14 @@ spec:
             - secretRef:
                 name: shop-secrets
             - configMapRef:
-              name: shop-config
+                name: shop-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
 ---
 apiVersion: v1
 kind: Service
@@ -90,7 +97,7 @@ spec:
     spec:
       containers:
         - name: product-service
-          image: product-service:latest
+          image: product-service:1775253601
           command: ["npm", "run", "micro:product"]
           ports:
             - containerPort: 5002
@@ -98,7 +105,14 @@ spec:
             - secretRef:
                 name: shop-secrets
             - configMapRef:
-              name: shop-config
+                name: shop-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
 ---
 apiVersion: v1
 kind: Service
@@ -140,7 +154,14 @@ spec:
             - secretRef:
                 name: shop-secrets
             - configMapRef:
-              name: shop-config
+                name: shop-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 400m
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -182,7 +203,14 @@ spec:
             - secretRef:
                 name: shop-secrets
             - configMapRef:
-              name: shop-config
+                name: shop-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 400m
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -224,7 +252,14 @@ spec:
             - secretRef:
                 name: shop-secrets
             - configMapRef:
-              name: shop-config
+                name: shop-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
 ---
 apiVersion: v1
 kind: Service
@@ -266,7 +301,14 @@ spec:
             - secretRef:
                 name: shop-secrets
             - configMapRef:
-              name: shop-config
+                name: shop-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 400m
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -308,7 +350,14 @@ spec:
             - secretRef:
                 name: shop-secrets
             - configMapRef:
-              name: shop-config
+                name: shop-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service

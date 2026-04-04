@@ -29,7 +29,7 @@
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
       "title": "Total Orders",
       "type": "stat",
-      "targets": [{ "expr": "sum(orders_total)", "legendFormat": "Orders", "refId": "A" }]
+      "targets": [{ "expr": "sum(orders_total)", "instant": true, "legendFormat": "Orders", "refId": "A" }]
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -45,7 +45,7 @@
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
       "title": "Registered Users",
       "type": "stat",
-      "targets": [{ "expr": "sum(users_registered_total)", "legendFormat": "Users", "refId": "A" }]
+      "targets": [{ "expr": "sum(users_registered_total)", "instant": true, "legendFormat": "Users", "refId": "A" }]
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -61,7 +61,7 @@
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
       "title": "User Logins",
       "type": "stat",
-      "targets": [{ "expr": "sum(users_logged_in_total)", "legendFormat": "Logins", "refId": "A" }]
+      "targets": [{ "expr": "sum(users_logged_in_total)", "instant": true, "legendFormat": "Logins", "refId": "A" }]
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -77,7 +77,7 @@
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
       "title": "Cart Additions",
       "type": "stat",
-      "targets": [{ "expr": "sum(cart_additions_total)", "legendFormat": "Cart Adds", "refId": "A" }]
+      "targets": [{ "expr": "sum(cart_additions_total)", "instant": true, "legendFormat": "Cart Adds", "refId": "A" }]
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -93,7 +93,7 @@
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
       "title": "Payments Processed",
       "type": "stat",
-      "targets": [{ "expr": "sum(payments_total)", "legendFormat": "Payments", "refId": "A" }]
+      "targets": [{ "expr": "sum(payments_total)", "instant": true, "legendFormat": "Payments", "refId": "A" }]
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -109,7 +109,7 @@
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
       "title": "Reviews Submitted",
       "type": "stat",
-      "targets": [{ "expr": "sum(reviews_total)", "legendFormat": "Reviews", "refId": "A" }]
+      "targets": [{ "expr": "sum(reviews_total)", "instant": true, "legendFormat": "Reviews", "refId": "A" }]
     },
     {
       "collapsed": false,
@@ -364,6 +364,153 @@
       "targets": [
         { "expr": "sum(kube_pod_container_status_restarts_total{namespace=\"shop-micro\"}) by (pod)", "legendFormat": "{{pod}}", "refId": "A" }
       ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 54 },
+      "id": 56,
+      "options": { "tooltip": { "mode": "single" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] } },
+      "title": "Running Pod Count Over Time",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "count(kube_pod_info{namespace=\"shop-micro\"})", "legendFormat": "pods", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "cores" }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 54 },
+      "id": 57,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] } },
+      "title": "CPU Usage by Pod",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"shop-micro\",container!=\"\",pod!=\"\"}[5m])) by (pod)", "legendFormat": "{{pod}}", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 54 },
+      "id": 58,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "max"] } },
+      "title": "Memory Working Set by Pod",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "sum(container_memory_working_set_bytes{namespace=\"shop-micro\",container!=\"\",pod!=\"\"}) by (pod)", "legendFormat": "{{pod}}", "refId": "A" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 62 },
+      "id": 106,
+      "title": "Horizontal Pod Autoscaling",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 63 },
+      "id": 60,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "HPA Min Replicas",
+      "type": "stat",
+      "targets": [{ "expr": "sum(kube_horizontalpodautoscaler_spec_min_replicas{namespace=\"shop-micro\"})", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 63 },
+      "id": 61,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "HPA Current Replicas",
+      "type": "stat",
+      "targets": [{ "expr": "sum(kube_horizontalpodautoscaler_status_current_replicas{namespace=\"shop-micro\"})", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 63 },
+      "id": 62,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "HPA Desired Replicas",
+      "type": "stat",
+      "targets": [{ "expr": "sum(kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"shop-micro\"})", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 63 },
+      "id": 63,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "title": "HPA Max Replicas",
+      "type": "stat",
+      "targets": [{ "expr": "sum(kube_horizontalpodautoscaler_spec_max_replicas{namespace=\"shop-micro\"})", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 67 },
+      "id": 64,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] } },
+      "title": "HPA Current vs Desired Replicas",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"shop-micro\"}", "legendFormat": "current {{horizontalpodautoscaler}}", "refId": "A" },
+        { "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"shop-micro\"}", "legendFormat": "desired {{horizontalpodautoscaler}}", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 67 },
+      "id": 65,
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "showUnfilled": true
+      },
+      "title": "HPA Max Replica Capacity by Service",
+      "type": "bargauge",
+      "targets": [
+        { "expr": "kube_horizontalpodautoscaler_spec_max_replicas{namespace=\"shop-micro\"}", "legendFormat": "{{horizontalpodautoscaler}}", "refId": "A" }
+      ]
     }
   ],
   "refresh": "10s",
@@ -373,7 +520,7 @@
   "time": { "from": "now-30m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "AOS Project — Microservices Dashboard",
-  "uid": "aos-microservices-v1",
+  "title": "AOS Project — Microservices Dashboard Live",
+  "uid": "aos-microservices-live",
   "version": 1
 }
