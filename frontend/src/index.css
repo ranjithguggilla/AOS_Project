@@ -6,7 +6,7 @@
 button, .btn {
   transition: background 0.22s, color 0.22s, box-shadow 0.22s, transform 0.18s;
   box-shadow: 0 2px 8px rgba(30, 64, 175, 0.07);
-  border-radius: 8px;
+  border-radius: 12px; /* slightly more rounded */
 }
 button:hover, .btn:hover, button:focus, .btn:focus {
   background: linear-gradient(90deg, #fbbf24 0%, #f87171 100%); /* changed to yellow to red */
