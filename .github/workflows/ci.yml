@@ -96,6 +96,21 @@ jobs:
           docker compose logs --no-color --tail 200 gateway || true
           docker compose logs --no-color --tail 80 product-service || true
           exit 1
+      # nginx can answer /health before upstreams accept traffic; avoid flaky 502 on /api/users/*
+      - name: Wait for user-service (direct port)
+        run: |
+          set -e
+          for i in $(seq 1 40); do
+            if curl -fsS --connect-timeout 2 --max-time 5 http://localhost:8001/health >/dev/null 2>&1; then
+              echo "user-service healthy after ${i} attempt(s)"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::user-service did not become ready"
+          docker compose ps
+          docker compose logs --no-color --tail 120 user-service || true
+          exit 1
       - name: Run gateway integration flow
         run: RUN_INTEGRATION=true INTEGRATION_BASE_URL=http://localhost:8080 node --test tests/integration/*.test.mjs
       - name: Capture compose diagnostics
