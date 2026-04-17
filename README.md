@@ -172,11 +172,11 @@ Details: [`k8s/README.md`](k8s/README.md). GKE-oriented notes: [`docs/GKE_DEPLOY
 
 ## Source repository
 
-Canonical remote: **[github.com/ranjithguggilla/AOS_Project](https://github.com/ranjithguggilla/AOS_Project)**
+Canonical remote: **[github.com/ranjithguggilla/bitforge](https://github.com/ranjithguggilla/bitforge)**
 
 ```bash
-git clone https://github.com/ranjithguggilla/AOS_Project.git
-cd AOS_Project
+git clone https://github.com/ranjithguggilla/bitforge.git
+cd bitforge
 ```
 
 ---
