@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Row, Col, Form, Button, Card, Badge, ListGroup } from 'react-bootstrap';
+// Removed unused imports: Row, Col, Form, Button, Card, Badge, ListGroup
 import axios from 'axios';
 import { useAuth } from '../store/AuthContext';
 import Message from '../components/Message';

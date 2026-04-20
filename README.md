@@ -4,6 +4,9 @@
 
 **BitForge** is a full-stack **microservices** platform for a DIY maker kits marketplace built around an original product concept focused on **kits, customization, and maker workflows**, not a generic retail clone. The **center of gravity is the backend**: an **nginx API gateway**, independently deployable Node.js services, **MongoDB** with database per service boundaries, **Redis**, structured **observability** (Prometheus, Grafana, Jaeger), and optional **Kubernetes** / Terraform for deployment so, the system reads as a **demonstrable distributed architecture** with **health checks, metrics, tracing, and gateway controlled ingress** supporting operational safety and reviewability.
 
+
+**Note:** Make sure to start both the frontend (Vite) and backend (API gateway/microservices) servers for the application to work correctly. The frontend alone will not function without the backend running on port 8080.
+
 **High-level flow:** `React (Vite)` → `nginx :8080` → `microservices` → `MongoDB` / `Redis`
 
 ---
