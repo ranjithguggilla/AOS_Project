@@ -9,7 +9,7 @@ const tabLabels = [
   'Active Users',
 ];
 
-function TabPanel(props: { children?: React.ReactNode; index: number; value: number }) {
+function TabPanel(props: { children?: React.ReactNode; index: number; value: number }): JSX.Element {
   const { children, value, index, ...other } = props;
   return (
     <div

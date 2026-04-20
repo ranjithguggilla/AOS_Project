@@ -20,12 +20,23 @@ export default function Header() {
     navigate('/');
   };
 
+
   const primaryNav = (
-    <Nav className="navbar-mid-links flex-row">
-      <Nav.Link as={Link} to="/" style={{ cursor: 'pointer' }}>
+    <Nav className="navbar-mid-links flex-row" activeKey={pathname}>
+      <Nav.Link
+        as={Link}
+        to="/"
+        style={{ cursor: 'pointer' }}
+        active={pathname === '/'}
+      >
         Home
       </Nav.Link>
-      <Nav.Link as={Link} to="/shop" style={{ cursor: 'pointer' }}>
+      <Nav.Link
+        as={Link}
+        to="/shop"
+        style={{ cursor: 'pointer' }}
+        active={pathname === '/shop'}
+      >
         Shop
       </Nav.Link>
     </Nav>

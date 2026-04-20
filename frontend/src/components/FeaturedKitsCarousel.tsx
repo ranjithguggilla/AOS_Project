@@ -25,7 +25,7 @@ function tierFromDifficulty(d: string): DifficultyTier | null {
   return null;
 }
 
-export default function FeaturedKitsCarousel({ products }: { products: Product[] }) {
+export default function FeaturedKitsCarousel({ products }: { products: Product[] }): JSX.Element {
   const [tier, setTier] = useState<DifficultyTier>('Beginner');
   const trackRef = useRef<HTMLDivElement>(null);
 
