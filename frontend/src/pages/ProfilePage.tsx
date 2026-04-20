@@ -34,7 +34,7 @@ interface Order {
   orderItems: OrderItem[];
 }
 
-function formatPaymentMethod(method: string) {
+function formatPaymentMethod(method: string): string {
   const m = method || '';
   if (m === 'paypal') return 'PayPal';
   if (m === 'stripe_sandbox') return 'Card (test / Stripe sandbox)';
@@ -67,7 +67,7 @@ function orderStatusBadge(order: Order): { bg: string; label: string; detail: st
   };
 }
 
-function itemsSubtotal(order: Order) {
+function itemsSubtotal(order: Order): number {
   return order.orderItems.reduce((s, i) => s + i.price * i.qty, 0);
 }
 

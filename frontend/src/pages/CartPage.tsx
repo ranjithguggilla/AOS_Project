@@ -8,7 +8,7 @@ import { useAuth } from '../store/AuthContext';
 import type { CartItem } from '../store/cartTypes';
 import Message from '../components/Message';
 
-function CartLineBom({ item }: { item: CartItem }) {
+function CartLineBom({ item }: { item: CartItem }): JSX.Element {
   const bom = item.customization?.bom;
   if (!bom?.length) {
     return (
@@ -47,7 +47,7 @@ function CartLineBom({ item }: { item: CartItem }) {
   );
 }
 
-function OrderSummaryLineItems({ cartItems }: { cartItems: CartItem[] }) {
+function OrderSummaryLineItems({ cartItems }: { cartItems: CartItem[] }): JSX.Element {
   return (
     <div className="order-summary-lines">
       <h6 className="mb-3 text-muted text-uppercase" style={{ fontSize: '0.72rem', letterSpacing: '0.06em' }}>
