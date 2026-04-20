@@ -1,1 +1,22 @@
-node_modules
+frontend/node_modules/
+frontend/dist/
+microservices/**/node_modules/
+load/results/
+**/__pycache__/
+*.pyc
+.env
+.DS_Store
+
+# Frontend build / test artifacts
+frontend/tsconfig.tsbuildinfo
+frontend/test-results/
+
+# Terraform: keep only *.tfvars.example in version control
+infra/terraform/gke/terraform.tfvars
+**/.terraform/
+*.tfstate
+*.tfstate.*
+
+# Accidental empty artifacts (npm/playwright noise)
+frontend/maker-platform-web@0.1.0
+frontend/playwright
