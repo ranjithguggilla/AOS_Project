@@ -12,7 +12,7 @@ Generated: 2026-04-20 (updated after AOS migration)
 
 ## AOS migration (2026-04-20)
 
-The BitForge implementation was **merged into** **[AOS_Project](https://github.com/ranjithguggilla/AOS_Project)** as `main`. The standalone **`BitForge-DIY-Maker-Platform`** GitHub repository was **deleted** after migration; this repo is the single source of truth.
+The BitForge implementation was merged into the course repository on `main` (now **[bitforge](https://github.com/ranjithguggilla/bitforge)**). The standalone **`BitForge-DIY-Maker-Platform`** GitHub repository was **deleted** after migration; this repo is the single source of truth.
 
 ## Lesson
 
@@ -24,9 +24,9 @@ The removed `maker-platform/` tree is gone from disk unless **Time Machine** or 
 
 ## Canonical path
 
-Work only in this repository (**AOS_Project**). Clone:
+Work only in this repository (**bitforge**). Clone:
 
 ```bash
-git clone https://github.com/ranjithguggilla/AOS_Project.git
-cd AOS_Project
+git clone https://github.com/ranjithguggilla/bitforge.git
+cd bitforge
 ```
