@@ -8,7 +8,7 @@ const products = [
     description:
       'Soil moisture and ambient sensing for houseplants: MCU reads probes, drives a simple display or alerts, and teaches analog sensing + calibration in a compact eco build.',
     price: 34.99,
-    image: '/catalog/featured-kits/plant.png',
+    image: '/catalog/base-kits/plant.jpg',
     category: 'eco',
     difficulty: 'Beginner',
     countInStock: 10,
