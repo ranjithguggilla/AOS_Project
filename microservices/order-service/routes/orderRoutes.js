@@ -185,6 +185,42 @@ router.put('/:id/deliver', protect, admin, async (req, res) => {
   }
 });
 
+/** Admin-only: remove unpaid (pending payment) orders and restore product stock. */
+router.delete('/:id', protect, admin, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    if (order.isPaid) {
+      return res.status(400).json({
+        message: 'Paid orders cannot be deleted here. Use your payment provider to refund if needed.',
+      });
+    }
+
+    await Promise.all(
+      order.orderItems.map((item) =>
+        callProductService(req, '/api/products/internal/decrement-stock', {
+          productId: item.product,
+          qty: -item.qty,
+        })
+      )
+    );
+
+    if (order.idempotencyKey) {
+      await IdempotencyRecord.deleteOne({ key: order.idempotencyKey });
+    }
+
+    await order.deleteOne();
+    return res.json({ message: 'Order deleted and inventory restored' });
+  } catch (err) {
+    if (err instanceof CircuitBreakerOpenError) {
+      return res.status(503).json({ message: 'Product service temporarily unavailable (circuit open)' });
+    }
+    return res.status(500).json({ message: err.message });
+  }
+});
+
 router.put('/:id/cancel', serviceAuth, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);

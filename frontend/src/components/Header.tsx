@@ -79,6 +79,9 @@ export default function Header() {
                   id="account-menu"
                   align="end"
                 >
+                  <NavDropdown.Item as={Link} to="/profile#your-orders">
+                    Your orders
+                  </NavDropdown.Item>
                   <NavDropdown.Item as={Link} to="/profile">
                     Profile
                   </NavDropdown.Item>
