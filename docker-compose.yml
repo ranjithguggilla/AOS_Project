@@ -46,6 +46,12 @@ services:
       SERVICE_TOKEN: ${SERVICE_TOKEN:-dev-internal-token}
     ports:
       - "8001:8001"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 90s
     depends_on:
       mongo:
         condition: service_healthy
@@ -62,6 +68,12 @@ services:
       SERVICE_TOKEN: ${SERVICE_TOKEN:-dev-internal-token}
     ports:
       - "8002:8002"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8002/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 90s
     depends_on:
       mongo:
         condition: service_healthy
@@ -79,6 +91,12 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
     ports:
       - "8006:8006"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8006/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 90s
     depends_on:
       mongo:
         condition: service_healthy
@@ -98,11 +116,17 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
     ports:
       - "8003:8003"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8003/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 90s
     depends_on:
       mongo:
         condition: service_healthy
       product-service:
-        condition: service_started
+        condition: service_healthy
       otel-collector:
         condition: service_started
 
@@ -116,11 +140,17 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
     ports:
       - "8004:8004"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8004/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 90s
     depends_on:
       mongo:
         condition: service_healthy
       order-service:
-        condition: service_started
+        condition: service_healthy
       otel-collector:
         condition: service_started
 
@@ -132,6 +162,12 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
     ports:
       - "8007:8007"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8007/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 90s
     depends_on:
       mongo:
         condition: service_healthy
@@ -146,6 +182,12 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
     ports:
       - "8005:8005"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8005/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 90s
     depends_on:
       mongo:
         condition: service_healthy
@@ -159,13 +201,20 @@ services:
     volumes:
       - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - user-service
-      - product-service
-      - cart-service
-      - order-service
-      - payment-service
-      - review-service
-      - forum-service
+      user-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+      cart-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+      review-service:
+        condition: service_healthy
+      forum-service:
+        condition: service_healthy
 
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:1.1.0
