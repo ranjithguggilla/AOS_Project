@@ -73,8 +73,8 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.4);
   background: rgba(255, 255, 255, 0.45);
   box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
-  backdrop-filter: blur(12px) saturate(130%);
   -webkit-backdrop-filter: blur(12px) saturate(130%);
+  backdrop-filter: blur(12px) saturate(130%);
   transition: transform 240ms ease, box-shadow 240ms ease, background-color 240ms ease;
 }
 
@@ -104,8 +104,8 @@ main {
   z-index: 1020;
   border-bottom: 1px solid rgba(255, 255, 255, 0.45);
   background: rgba(255, 255, 255, 0.52);
-  backdrop-filter: blur(10px) saturate(130%);
   -webkit-backdrop-filter: blur(10px) saturate(130%);
+  backdrop-filter: blur(10px) saturate(130%);
   transition: background-color 220ms ease, border-color 220ms ease;
 }
 
@@ -302,8 +302,8 @@ main {
   z-index: 1020;
   border-bottom: 1px solid rgba(148, 163, 184, 0.28);
   background: rgba(249, 250, 251, 0.94);
-  backdrop-filter: blur(10px) saturate(120%);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
 }
 
 .minimal-site-header .navbar-brand {
@@ -340,8 +340,8 @@ main {
 .category-chips-bar {
   border-bottom: 1px solid rgba(148, 163, 184, 0.24);
   background: rgba(243, 244, 246, 0.88);
-  backdrop-filter: blur(8px) saturate(115%);
   -webkit-backdrop-filter: blur(8px) saturate(115%);
+  backdrop-filter: blur(8px) saturate(115%);
 }
 
 .category-chips-bar-inner {
@@ -354,8 +354,14 @@ main {
   gap: 0.45rem;
   overflow-x: auto;
   padding: 0.55rem 0;
-  scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Apply scrollbar-width only where it's supported (Firefox and newer browsers) */
+@supports (scrollbar-width: thin) {
+  .category-chips-scroll {
+    scrollbar-width: thin;
+  }
 }
 
 .category-chips-scroll::-webkit-scrollbar {
@@ -508,17 +514,20 @@ main {
 .glass-button {
   border: 1px solid rgba(255, 255, 255, 0.35);
   backdrop-filter: blur(8px) saturate(130%);
+  color: black;
   -webkit-backdrop-filter: blur(8px) saturate(130%);
   transition: transform 150ms ease, box-shadow 160ms ease, filter 160ms ease;
 }
 
 .glass-button:hover {
   transform: translateY(-1px);
+  color: black;
   box-shadow: 0 8px 20px rgba(30, 64, 175, 0.2);
 }
 
 .glass-button:active {
   transform: translateY(0);
+  background-color: #4e25f4;
 }
 
 .transparency-label {
@@ -1194,8 +1203,8 @@ a.hero-link:focus-visible {
   border: none;
   border-radius: 50%;
   background: rgba(210, 210, 215, 0.65);
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   color: #3a3a3c;
   cursor: pointer;
   display: flex;

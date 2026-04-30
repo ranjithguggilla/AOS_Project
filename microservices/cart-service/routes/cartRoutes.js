@@ -4,6 +4,11 @@ const Cart = require('../models/Cart');
 const { protect } = require('../middleware/auth');
 const { cacheMiddleware, invalidateCache } = require('../middleware/cache');
 
+function lineKey(item) {
+  if (item.cartLineId != null && item.cartLineId !== '') return String(item.cartLineId);
+  return String(item.productId);
+}
+
 router.get('/:userId', protect, cacheMiddleware((req) => `cart:${req.params.userId}`), async (req, res) => {
   try {
     if (req.params.userId !== req.user.id) {
@@ -18,18 +23,33 @@ router.get('/:userId', protect, cacheMiddleware((req) => `cart:${req.params.user
 
 router.post('/add', protect, async (req, res) => {
   try {
-    const { productId, name, image, price, qty } = req.body;
+    const { productId, cartLineId, name, image, price, qty, customization } = req.body;
     let cart = await Cart.findOne({ userId: req.user.id });
 
     if (!cart) {
       cart = new Cart({ userId: req.user.id, items: [] });
     }
 
-    const existing = cart.items.find((i) => i.productId === productId);
+    const incomingLineId = cartLineId != null && cartLineId !== '' ? String(cartLineId) : String(productId);
+
+    const existing = cart.items.find((i) => lineKey(i) === incomingLineId);
     if (existing) {
       existing.qty += qty || 1;
+      if (price != null) existing.price = Number(price);
+      if (name != null) existing.name = name;
+      if (image != null) existing.image = image;
+      if (customization != null) existing.customization = customization;
+      if (incomingLineId) existing.cartLineId = incomingLineId;
     } else {
-      cart.items.push({ productId, name, image, price, qty: qty || 1 });
+      cart.items.push({
+        cartLineId: incomingLineId,
+        productId,
+        name,
+        image,
+        price,
+        qty: qty || 1,
+        ...(customization != null ? { customization } : {}),
+      });
     }
 
     await cart.save();
@@ -42,14 +62,15 @@ router.post('/add', protect, async (req, res) => {
 
 router.put('/update', protect, async (req, res) => {
   try {
-    const { productId, qty } = req.body;
+    const { cartLineId, productId, qty } = req.body;
+    const key = cartLineId != null && cartLineId !== '' ? String(cartLineId) : String(productId);
     const cart = await Cart.findOne({ userId: req.user.id });
 
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
-    const item = cart.items.find((i) => i.productId === productId);
+    const item = cart.items.find((i) => lineKey(i) === key);
     if (!item) {
       return res.status(404).json({ message: 'Item not found in cart' });
     }
@@ -65,14 +86,15 @@ router.put('/update', protect, async (req, res) => {
 
 router.delete('/remove', protect, async (req, res) => {
   try {
-    const { productId } = req.body;
+    const { cartLineId, productId } = req.body;
+    const key = cartLineId != null && cartLineId !== '' ? String(cartLineId) : String(productId);
     const cart = await Cart.findOne({ userId: req.user.id });
 
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
-    cart.items = cart.items.filter((i) => i.productId !== productId);
+    cart.items = cart.items.filter((i) => lineKey(i) !== key);
     await cart.save();
     await invalidateCache(`cart:${req.user.id}`);
     res.json(cart);

@@ -7,6 +7,8 @@ import Message from '../components/Message';
 import Rating from '../components/Rating';
 import { useAuth } from '../store/AuthContext';
 import { useCart } from '../store/CartContext';
+import type { CartCustomization } from '../store/cartTypes';
+import { makeCartLineId } from '../store/cartTypes';
 import GlassButton from '../components/glass/GlassButton';
 import GlassSurface from '../components/glass/GlassSurface';
 
@@ -25,6 +27,7 @@ interface ComponentItem {
   voltage_volts: number;
 }
 interface CustomizeResult {
+  kit_id: string;
   kit_name: string;
   total: number;
   bom: { name: string; sku: string; price: number }[];
@@ -49,6 +52,13 @@ export default function ProductPage() {
   const [customizeResult, setCustomizeResult] = useState<CustomizeResult | null>(null);
   const [customizeLoading, setCustomizeLoading] = useState(false);
   const [customizeError, setCustomizeError] = useState('');
+
+  useEffect(() => {
+    setSelectedModules([]);
+    setCustomizeResult(null);
+    setCustomizeError('');
+    setMsg('');
+  }, [id]);
 
   useEffect(() => {
     let mounted = true;
@@ -87,10 +97,78 @@ export default function ProductPage() {
     return () => { mounted = false; };
   }, [id]);
 
-  const handleAddToCart = () => {
+  const toggleModule = (componentId: string) => {
+    const sid = String(componentId);
+    setCustomizeResult(null);
+    setSelectedModules((prev) => {
+      const next = new Set(prev.map(String));
+      if (next.has(sid)) next.delete(sid);
+      else next.add(sid);
+      return [...next];
+    });
+  };
+
+  /** Module IDs to price — prefer live checkbox selection; else use last BOM for this kit (same kit_id). */
+  const resolveModuleIdsForCart = (): string[] => {
+    if (!product) return [];
+    if (selectedModules.length > 0) {
+      return [...new Set(selectedModules.map(String))];
+    }
+    if (
+      customizeResult &&
+      String(customizeResult.kit_id ?? '') === String(product._id) &&
+      customizeResult.bom.length > 1 &&
+      components.length > 0
+    ) {
+      const addonSkus = customizeResult.bom.slice(1).map((b) => b.sku);
+      const ids = components.filter((c) => addonSkus.includes(c.sku)).map((c) => String(c._id));
+      if (ids.length === addonSkus.length) return ids;
+    }
+    return [];
+  };
+
+  const handleAddToCart = async () => {
     if (!product) return;
-    addToCart({ productId: product._id, name: product.name, image: product.image, price: product.price, qty });
-    setMsg('Added to cart!');
+    setMsg('');
+    try {
+      let unitPrice = product.price;
+      let customization: CartCustomization | undefined;
+      let cartLineId = makeCartLineId(product._id, []);
+
+      const moduleIds = resolveModuleIdsForCart();
+
+      if (moduleIds.length > 0) {
+        const { data } = await axios.post('/api/products/customize', {
+          kit_id: product._id,
+          component_ids: moduleIds,
+        });
+        unitPrice = Number(data.total);
+        if (Number.isNaN(unitPrice)) {
+          setMsg('Invalid price from server — try "Build BOM & Price" again.');
+          return;
+        }
+        cartLineId = makeCartLineId(product._id, moduleIds);
+        customization = {
+          componentIds: [...moduleIds],
+          bom: data.bom,
+          basePrice: product.price,
+        };
+      }
+
+      addToCart({
+        productId: product._id,
+        cartLineId,
+        name: product.name,
+        image: product.image,
+        price: unitPrice,
+        qty,
+        ...(customization ? { customization } : {}),
+      });
+      setMsg('Added to cart!');
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } }; message?: string };
+      setMsg(err.response?.data?.message || err.message || 'Could not add to cart');
+    }
   };
 
   const handleReview = async (e: React.FormEvent) => {
@@ -105,15 +183,6 @@ export default function ProductPage() {
     } catch (e: any) { setMsg(e.response?.data?.message || e.message); }
   };
 
-  const toggleModule = (componentId: string) => {
-    setSelectedModules((prev) => {
-      const next = new Set(prev);
-      if (next.has(componentId)) next.delete(componentId);
-      else next.add(componentId);
-      return [...next];
-    });
-  };
-
   const handleCustomize = async () => {
     if (!product) return;
     setCustomizeLoading(true);
@@ -121,7 +190,7 @@ export default function ProductPage() {
     try {
       const { data } = await axios.post('/api/products/customize', {
         kit_id: product._id,
-        component_ids: selectedModules,
+        component_ids: selectedModules.map(String),
       });
       setCustomizeResult(data);
     } catch (e: any) {
@@ -166,7 +235,7 @@ export default function ProductPage() {
                 </ListGroup.Item>
               )}
               <ListGroup.Item>
-                <GlassButton className="w-100" disabled={product.countInStock === 0} onClick={handleAddToCart}>Add to Cart</GlassButton>
+                <GlassButton className="w-100" disabled={product.countInStock === 0} onClick={() => void handleAddToCart()}>Add to Cart</GlassButton>
               </ListGroup.Item>
             </ListGroup>
           </GlassSurface>
@@ -197,8 +266,8 @@ export default function ProductPage() {
                   <Form.Check
                     type="checkbox"
                     id={`module-${c._id}`}
-                    checked={selectedModules.includes(c._id)}
-                    onChange={() => toggleModule(c._id)}
+                    checked={selectedModules.map(String).includes(String(c._id))}
+                    onChange={() => toggleModule(String(c._id))}
                     label={`${c.name} (${c.sku}) — $${c.price.toFixed(2)}`}
                   />
                 </ListGroup.Item>

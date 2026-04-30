@@ -20,10 +20,35 @@ export default function OrderPage() {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
+  const [loadError, setLoadError] = useState('');
   const headers = userInfo ? { Authorization: `Bearer ${userInfo.token}` } : {};
 
-  const fetchOrder = () => axios.get(`/api/orders/${id}`, { headers }).then(r => setOrder(r.data)).catch(() => {}).finally(() => setLoading(false));
-  useEffect(() => { fetchOrder(); }, [id]);
+  const fetchOrder = () => {
+    setLoadError('');
+    if (!userInfo?.token || !id) {
+      setLoading(false);
+      setOrder(null);
+      if (!userInfo?.token) setLoadError('Sign in to view this order.');
+      return Promise.resolve();
+    }
+    setLoading(true);
+    return axios
+      .get(`/api/orders/${id}`, { headers: { Authorization: `Bearer ${userInfo.token}` } })
+      .then((r) => setOrder(r.data))
+      .catch((e: { response?: { status?: number; data?: { message?: string } }; message?: string }) => {
+        setOrder(null);
+        const status = e.response?.status;
+        const m = e.response?.data?.message || e.message;
+        if (status === 403) setLoadError(m || 'You do not have access to this order.');
+        else if (status === 404) setLoadError(m || 'Order not found.');
+        else setLoadError(m || 'Could not load order.');
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    void fetchOrder();
+  }, [id, userInfo?.token]);
 
   const handlePay = async () => {
     try {
@@ -41,7 +66,7 @@ export default function OrderPage() {
   };
 
   if (loading) return <Loader />;
-  if (!order) return <Message variant="danger">Order not found</Message>;
+  if (!order) return <Message variant="danger">{loadError || 'Order not found'}</Message>;
 
   const itemsPrice = order.orderItems.reduce((s, i) => s + i.price * i.qty, 0);
 
