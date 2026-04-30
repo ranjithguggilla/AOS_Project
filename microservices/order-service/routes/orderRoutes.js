@@ -5,6 +5,13 @@ const IdempotencyRecord = require('../models/IdempotencyRecord');
 const { protect, admin, serviceAuth } = require('../middleware/auth');
 const { createCircuitBreaker, CircuitBreakerOpenError } = require('../utils/circuitBreaker');
 
+
+const client = require('prom-client');
+const orderCreatedCounter = new client.Counter({
+  name: 'order_created_total',
+  help: 'Total number of orders created',
+});
+
 const router = express.Router();
 
 const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL;
@@ -104,6 +111,7 @@ router.post('/', protect, async (req, res) => {
       });
     }
 
+    orderCreatedCounter.inc();
     return res.status(201).json(order);
   } catch (err) {
     if (err instanceof CircuitBreakerOpenError) {

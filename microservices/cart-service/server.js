@@ -8,7 +8,7 @@ const client = require('prom-client');
 
 const app = express();
 const register = new client.Registry();
-client.collectDefaultMetrics({ register });
+client.collectDefaultMetrics({ register, labels: { service: 'cart-service' } });
 const httpRequestDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   help: 'HTTP request duration in seconds',

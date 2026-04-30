@@ -1,4 +1,7 @@
+// Expose Prometheus metrics endpoint
 const express = require('express');
+// Only require prom-client once and use promClient everywhere
+const promClient = require('prom-client');
 const crypto = require('crypto');
 const axios = require('axios');
 const Payment = require('../models/Payment');
@@ -6,7 +9,25 @@ const IdempotencyRecord = require('../models/IdempotencyRecord');
 const { protect } = require('../middleware/auth');
 const { createCircuitBreaker, CircuitBreakerOpenError } = require('../utils/circuitBreaker');
 
+const paymentSuccessCounter = new promClient.Counter({
+  name: 'payment_success_total',
+  help: 'Total number of successful payments',
+});
+const paymentAttemptCounter = new promClient.Counter({
+  name: 'payment_attempt_total',
+  help: 'Total number of payment attempts',
+});
+const paymentFailedCounter = new promClient.Counter({
+  name: 'payment_failed_total',
+  help: 'Total number of failed payments',
+});
+
 const router = express.Router();
+
+router.get('/metrics', async (req, res) => {
+  res.set('Content-Type', promClient.register.contentType);
+  res.end(await promClient.register.metrics());
+});
 
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL;
 const SERVICE_TOKEN = process.env.SERVICE_TOKEN;
@@ -34,6 +55,7 @@ async function withRetry(fn, { attempts = 3, baseDelay = 500 } = {}) {
 
 router.post('/process', protect, async (req, res) => {
   try {
+    paymentAttemptCounter.inc();
     const idempotencyKey = req.headers['idempotency-key'];
 
     if (idempotencyKey) {
@@ -106,6 +128,7 @@ router.post('/process', protect, async (req, res) => {
     } catch (markPaidErr) {
       payment.status = 'FAILED';
       await payment.save();
+      paymentFailedCounter.inc();
 
       try {
         await orderCircuitBreaker.execute(() =>
@@ -138,6 +161,7 @@ router.post('/process', protect, async (req, res) => {
       });
     }
 
+    paymentSuccessCounter.inc();
     return res.status(201).json(payment);
   } catch (err) {
     if (err instanceof CircuitBreakerOpenError) {

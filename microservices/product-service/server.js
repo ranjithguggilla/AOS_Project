@@ -9,7 +9,7 @@ const seed = require('./seed');
 
 const app = express();
 const register = new client.Registry();
-client.collectDefaultMetrics({ register });
+client.collectDefaultMetrics({ register, labels: { service: 'product-service' } });
 const httpRequestDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   help: 'HTTP request duration in seconds',

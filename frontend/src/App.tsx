@@ -4,6 +4,7 @@ import Header from './components/Header';
 import CategoryChipsBar from './components/CategoryChipsBar';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
+import MonitoringDashboard from './pages/MonitoringDashboard';
 import ShopPage from './pages/ShopPage';
 import ProductPage from './pages/ProductPage';
 import CartPage from './pages/CartPage';
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/admin/products" element={<ProductListPage />} />
             <Route path="/admin/products/:id/edit" element={<ProductEditPage />} />
             <Route path="/admin/orders" element={<OrderListPage />} />
+            <Route path="/monitoring" element={<MonitoringDashboard />} />
           </Routes>
         </Container>
       </main>

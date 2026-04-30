@@ -4,13 +4,13 @@ metadata:
   name: maker-config
   namespace: maker-platform
 data:
-  USER_MONGO_URI: "mongodb://mongo:27017/UserDB"
-  PRODUCT_MONGO_URI: "mongodb://mongo:27017/ProductDB"
-  CART_MONGO_URI: "mongodb://mongo:27017/CartDB"
-  ORDER_MONGO_URI: "mongodb://mongo:27017/OrderDB"
-  PAYMENT_MONGO_URI: "mongodb://mongo:27017/PaymentDB"
-  REVIEW_MONGO_URI: "mongodb://mongo:27017/ReviewDB"
-  FORUM_MONGO_URI: "mongodb://mongo:27017/ForumDB"
+  USER_MONGO_URI: "mongodb+srv://madhupodutur108_db_user:RVpnMY29aOO5TREu@cluster0.tgyo6rp.mongodb.net/UserDB?retryWrites=true&w=majority"
+  PRODUCT_MONGO_URI: "mongodb+srv://madhupodutur108_db_user:RVpnMY29aOO5TREu@cluster0.tgyo6rp.mongodb.net/ProductDB?retryWrites=true&w=majority"
+  CART_MONGO_URI: "mongodb+srv://madhupodutur108_db_user:RVpnMY29aOO5TREu@cluster0.tgyo6rp.mongodb.net/CartDB?retryWrites=true&w=majority"
+  ORDER_MONGO_URI: "mongodb+srv://madhupodutur108_db_user:RVpnMY29aOO5TREu@cluster0.tgyo6rp.mongodb.net/OrderDB?retryWrites=true&w=majority"
+  PAYMENT_MONGO_URI: "mongodb+srv://madhupodutur108_db_user:RVpnMY29aOO5TREu@cluster0.tgyo6rp.mongodb.net/PaymentDB?retryWrites=true&w=majority"
+  REVIEW_MONGO_URI: "mongodb+srv://madhupodutur108_db_user:RVpnMY29aOO5TREu@cluster0.tgyo6rp.mongodb.net/ReviewDB?retryWrites=true&w=majority"
+  FORUM_MONGO_URI: "mongodb+srv://madhupodutur108_db_user:RVpnMY29aOO5TREu@cluster0.tgyo6rp.mongodb.net/ForumDB?retryWrites=true&w=majority"
   REDIS_URL: "redis://redis:6379/0"
   PRODUCT_SERVICE_URL: "http://product-service:8002"
   ORDER_SERVICE_URL: "http://order-service:8003"

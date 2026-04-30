@@ -1,7 +1,13 @@
+
 const express = require('express');
 const router = express.Router();
 const Review = require('../models/Review');
 const { protect } = require('../middleware/auth');
+const client = require('prom-client');
+const reviewCreatedCounter = new client.Counter({
+  name: 'review_created_total',
+  help: 'Total number of reviews created',
+});
 
 router.post('/', protect, async (req, res) => {
   try {
@@ -20,10 +26,16 @@ router.post('/', protect, async (req, res) => {
       comment,
     });
 
+    reviewCreatedCounter.inc();
     res.status(201).json(review);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+});
+// Expose Prometheus metrics endpoint
+router.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
 });
 
 router.get('/:productId', async (req, res) => {
