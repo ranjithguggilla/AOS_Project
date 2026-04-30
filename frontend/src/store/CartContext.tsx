@@ -29,7 +29,7 @@ interface CartCtx {
   cartItems: CartItem[];
   shippingAddress: ShippingAddress;
   paymentMethod: string;
-  addToCart: (item: CartItem) => void;
+  addToCart: (item: CartItem) => boolean;
   removeFromCart: (cartLineId: string) => void;
   updateCartQty: (cartLineId: string, qty: number) => void;
   clearCart: () => void;
@@ -53,9 +53,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { localStorage.setItem('cartItems', JSON.stringify(cartItems)); }, [cartItems]);
 
+  useEffect(() => {
+    // Keep cart/order details account-bound for a secure checkout experience.
+    if (!userInfo) {
+      setCartItems([]);
+      setShippingAddress({ address: '', city: '', postalCode: '', country: '' });
+      setPaymentMethod('stripe_sandbox');
+      localStorage.removeItem('cartItems');
+      localStorage.removeItem('shippingAddress');
+      localStorage.removeItem('paymentMethod');
+    }
+  }, [userInfo]);
+
   const authHeader = userInfo ? { Authorization: `Bearer ${userInfo.token}` } : {};
 
   const addToCart = (item: CartItem) => {
+    if (!userInfo) return false;
     const lineId = item.cartLineId || item.productId;
     setCartItems((prev) => {
       const idx = prev.findIndex((x) => x.cartLineId === lineId);
@@ -71,23 +84,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...item, cartLineId: lineId }];
     });
-    if (userInfo) {
-      axios
-        .post(
-          '/api/cart/add',
-          {
-            productId: item.productId,
-            cartLineId: lineId,
-            name: item.name,
-            image: item.image,
-            price: item.price,
-            qty: item.qty,
-            ...(item.customization ? { customization: item.customization } : {}),
-          },
-          { headers: authHeader }
-        )
-        .catch(() => {});
-    }
+    axios
+      .post(
+        '/api/cart/add',
+        {
+          productId: item.productId,
+          cartLineId: lineId,
+          name: item.name,
+          image: item.image,
+          price: item.price,
+          qty: item.qty,
+          ...(item.customization ? { customization: item.customization } : {}),
+        },
+        { headers: authHeader }
+      )
+      .catch(() => {});
+    return true;
   };
 
   const removeFromCart = (cartLineId: string) => {

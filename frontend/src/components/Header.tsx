@@ -3,6 +3,8 @@ import { Navbar, Nav, Container, NavDropdown, Badge } from 'react-bootstrap';
 import { FaShoppingCart, FaUser, FaUserPlus } from 'react-icons/fa';
 import { useAuth } from '../store/AuthContext';
 import { useCart } from '../store/CartContext';
+import logoBlue from '../assets/logo/bitforge-blue-tight.png';
+import logoIconBlue from '../assets/logo/bitforge-icon-blue.png';
 
 export default function Header() {
   const { userInfo, logout } = useAuth();
@@ -11,6 +13,7 @@ export default function Header() {
   const { pathname } = useLocation();
   const totalItems = cartItems.reduce((s, i) => s + i.qty, 0);
   const accountLabel = userInfo?.name?.trim() || 'Account';
+  const showIconOnlyBrand = pathname === '/';
 
   const handleLogout = () => {
     logout();
@@ -38,9 +41,11 @@ export default function Header() {
             to="/"
             className="nav-brand-mark navbar-shell-brand text-decoration-none align-items-center d-inline-flex flex-shrink-0"
           >
-            <span className="hero-brand-bit">Bit</span>
-            <span className="hero-brand-forge">Forge</span>
-            <span className="visually-hidden"> — DIY Maker Kits Marketplace</span>
+            <img
+              src={showIconOnlyBrand ? logoIconBlue : logoBlue}
+              alt="BitForge — DIY Maker Kits Marketplace"
+              className={showIconOnlyBrand ? 'navbar-logo-icon' : 'navbar-logo-img'}
+            />
           </Navbar.Brand>
           <div className="navbar-shell-mid d-none d-lg-flex align-items-center justify-content-center">
             {primaryNav}

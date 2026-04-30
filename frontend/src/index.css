@@ -131,12 +131,42 @@ main {
 
 .nav-brand-mark {
   display: inline-flex;
-  align-items: baseline;
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  align-items: center;
   line-height: 1;
   white-space: nowrap;
+}
+
+.navbar-logo-img {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  transition: opacity 180ms ease, filter 180ms ease;
+}
+
+.navbar-logo-icon {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  transition: opacity 180ms ease, filter 180ms ease;
+}
+
+@media (min-width: 992px) {
+  .navbar-logo-img {
+    height: 40px;
+  }
+
+  .navbar-logo-icon {
+    height: 34px;
+  }
+}
+
+[data-theme='dark'] .navbar-logo-img {
+  filter: brightness(0) invert(1);
+}
+
+[data-theme='dark'] .navbar-logo-icon {
+  filter: brightness(0) invert(1);
 }
 
 @media (min-width: 992px) {
@@ -1498,9 +1528,47 @@ a.hero-link:focus-visible {
 }
 
 footer {
-  background: #343a40;
-  color: #fff;
+  background: #1e293b;
+  color: #cbd5e1;
   text-align: center;
   padding: 1.5rem 0;
   margin-top: 2rem;
+}
+
+.footer-brand {
+  margin-bottom: 0.5rem;
+}
+
+.footer-logo-img {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.92;
+  transition: opacity 180ms ease;
+}
+
+.footer-logo-img:hover {
+  opacity: 1;
+}
+
+.hero-logo-img {
+  height: clamp(2.5rem, 4.5vw + 1rem, 3.85rem);
+  width: auto;
+  object-fit: contain;
+  transition: filter 200ms ease;
+}
+
+[data-theme='dark'] .hero-logo-img {
+  filter: brightness(0) invert(1);
+}
+
+.auth-brand-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+[data-theme='dark'] .auth-brand-logo {
+  filter: brightness(0) invert(1);
 }
