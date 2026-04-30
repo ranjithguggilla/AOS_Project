@@ -9,7 +9,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const app = express();
 const PORT = process.env.PORT || 8003;
 const register = new client.Registry();
-client.collectDefaultMetrics({ register });
+client.collectDefaultMetrics({ register, labels: { service: 'order-service' } });
 const httpRequestDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   help: 'HTTP request duration in seconds',

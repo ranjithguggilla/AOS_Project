@@ -1,62 +1,551 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mongo-pvc
-  namespace: maker-platform
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 8Gi
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mongo
+  name: user-service
   namespace: maker-platform
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: mongo
+      app: user-service
   template:
     metadata:
       labels:
-        app: mongo
+        app: user-service
     spec:
       containers:
-        - name: mongo
-          image: mongo:7
-          ports: [{containerPort: 27017}]
+        - name: user-service
+          image: madhu4011/user-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8001
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: USER_MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: maker-secrets
+                  key: JWT_SECRET
+            - name: SERVICE_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: SERVICE_TOKEN
           resources:
-            requests: {cpu: 200m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 512Mi}
+            requests:
+              cpu: 20m
+              memory: 50Mi
+            limits:
+              cpu: 150m
+              memory: 200Mi
           readinessProbe:
-            exec:
-              command: ["mongosh", "--eval", "db.adminCommand('ping')"]
+            httpGet:
+              path: /health
+              port: 8001
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            exec:
-              command: ["mongosh", "--eval", "db.adminCommand('ping')"]
-            initialDelaySeconds: 30
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 15
             periodSeconds: 20
-          volumeMounts:
-            - name: data
-              mountPath: /data/db
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: mongo-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo
+  name: user-service
   namespace: maker-platform
 spec:
-  selector: {app: mongo}
-  ports: [{port: 27017, targetPort: 27017}]
+  selector:
+    app: user-service
+  ports:
+    - port: 8001
+      targetPort: 8001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: maker-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: madhu4011/product-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8002
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: PRODUCT_MONGO_URI
+            - name: SERVICE_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: SERVICE_TOKEN
+          resources:
+            requests:
+              cpu: 20m
+              memory: 50Mi
+            limits:
+              cpu: 150m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: maker-platform
+spec:
+  selector:
+    app: product-service
+  ports:
+    - port: 8002
+      targetPort: 8002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: maker-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cart-service
+  template:
+    metadata:
+      labels:
+        app: cart-service
+    spec:
+      containers:
+        - name: cart-service
+          image: madhu4011/cart-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8006
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: CART_MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: maker-secrets
+                  key: JWT_SECRET
+            - name: SERVICE_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: SERVICE_TOKEN
+          resources:
+            requests:
+              cpu: 20m
+              memory: 50Mi
+            limits:
+              cpu: 150m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8006
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8006
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-service
+  namespace: maker-platform
+spec:
+  selector:
+    app: cart-service
+  ports:
+    - port: 8006
+      targetPort: 8006
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: maker-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: madhu4011/order-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8003
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: ORDER_MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: maker-secrets
+                  key: JWT_SECRET
+            - name: PRODUCT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: PRODUCT_SERVICE_URL
+            - name: SERVICE_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: SERVICE_TOKEN
+          resources:
+            requests:
+              cpu: 20m
+              memory: 50Mi
+            limits:
+              cpu: 150m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: maker-platform
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: 8003
+      targetPort: 8003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: maker-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: madhu4011/payment-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8004
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: PAYMENT_MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: maker-secrets
+                  key: JWT_SECRET
+            - name: ORDER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: ORDER_SERVICE_URL
+            - name: SERVICE_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: SERVICE_TOKEN
+          resources:
+            requests:
+              cpu: 20m
+              memory: 40Mi
+            limits:
+              cpu: 150m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: maker-platform
+spec:
+  selector:
+    app: payment-service
+  ports:
+    - port: 8004
+      targetPort: 8004
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review-service
+  namespace: maker-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: review-service
+  template:
+    metadata:
+      labels:
+        app: review-service
+    spec:
+      containers:
+        - name: review-service
+          image: madhu4011/review-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8007
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: REVIEW_MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: maker-secrets
+                  key: JWT_SECRET
+            - name: SERVICE_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: SERVICE_TOKEN
+          resources:
+            requests:
+              cpu: 20m
+              memory: 40Mi
+            limits:
+              cpu: 150m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8007
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8007
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-service
+  namespace: maker-platform
+spec:
+  selector:
+    app: review-service
+  ports:
+    - port: 8007
+      targetPort: 8007
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forum-service
+  namespace: maker-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: forum-service
+  template:
+    metadata:
+      labels:
+        app: forum-service
+    spec:
+      containers:
+        - name: forum-service
+          image: madhu4011/forum-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8005
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: FORUM_MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: maker-secrets
+                  key: JWT_SECRET
+            - name: SERVICE_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: maker-config
+                  key: SERVICE_TOKEN
+          resources:
+            requests:
+              cpu: 20m
+              memory: 40Mi
+            limits:
+              cpu: 150m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8005
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8005
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forum-service
+  namespace: maker-platform
+spec:
+  selector:
+    app: forum-service
+  ports:
+    - port: 8005
+      targetPort: 8005
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: maker-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 10m
+              memory: 30Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 8
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: nginx-gateway-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: maker-platform
+spec:
+  type: LoadBalancer
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -64,7 +553,7 @@ metadata:
   name: redis
   namespace: maker-platform
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: redis
@@ -76,15 +565,18 @@ spec:
       containers:
         - name: redis
           image: redis:7-alpine
-          args: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
-          ports: [{containerPort: 6379}]
+          ports:
+            - containerPort: 6379
           resources:
-            requests: {cpu: 200m, memory: 512Mi}
-            limits: {cpu: 500m, memory: 1024Mi}
+            requests:
+              cpu: 10m
+              memory: 30Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
           readinessProbe:
-            exec: {command: ["redis-cli", "ping"]}
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            exec:
+              command: ["redis-cli", "ping"]
 ---
 apiVersion: v1
 kind: Service
@@ -92,215 +584,15 @@ metadata:
   name: redis
   namespace: maker-platform
 spec:
-  selector: {app: redis}
-  ports: [{port: 6379, targetPort: 6379}]
----
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jaeger
-  namespace: maker-platform
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: jaeger
-  template:
-    metadata:
-      labels:
-        app: jaeger
-    spec:
-      containers:
-        - name: jaeger
-          image: jaegertracing/all-in-one:1.54
-          env: [{name: COLLECTOR_OTLP_ENABLED, value: "true"}]
-          ports: [{containerPort: 16686}, {containerPort: 4317}]
-          resources:
-            requests: {cpu: 100m, memory: 256Mi}
-            limits: {cpu: 300m, memory: 512Mi}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: jaeger
-  namespace: maker-platform
-spec:
-  selector: {app: jaeger}
-  ports:
-    - {name: ui, port: 16686, targetPort: 16686}
-    - {name: otlp-grpc, port: 4317, targetPort: 4317}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: otel-collector
-  namespace: maker-platform
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: otel-collector
-  template:
-    metadata:
-      labels:
-        app: otel-collector
-    spec:
-      containers:
-        - name: otel-collector
-          image: otel/opentelemetry-collector-contrib:0.96.0
-          ports: [{containerPort: 4317}, {containerPort: 4318}]
-          resources:
-            requests: {cpu: 100m, memory: 256Mi}
-            limits: {cpu: 300m, memory: 512Mi}
-          volumeMounts:
-            - name: config
-              mountPath: /etc/otelcol-contrib/config.yaml
-              subPath: config.yaml
-      volumes:
-        - name: config
-          configMap:
-            name: otel-collector-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: otel-collector
-  namespace: maker-platform
-spec:
-  selector: {app: otel-collector}
-  ports:
-    - {name: otlp-grpc, port: 4317, targetPort: 4317}
-    - {name: otlp-http, port: 4318, targetPort: 4318}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: user-service
-  namespace: maker-platform
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: user-service
-  template:
-    metadata:
-      labels:
-        app: user-service
-    spec:
-      containers:
-        - name: user-service
-          image: maker-user-service:dev
-          imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8001}]
-          env:
-            - {name: MONGO_URI, valueFrom: {configMapKeyRef: {name: maker-config, key: USER_MONGO_URI}}}
-            - {name: JWT_SECRET, valueFrom: {secretKeyRef: {name: maker-secrets, key: JWT_SECRET}}}
-            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector:4317"}
-          resources:
-            requests: {cpu: 200m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 512Mi}
-          readinessProbe: {httpGet: {path: /health, port: 8001}, initialDelaySeconds: 5, periodSeconds: 10}
-          livenessProbe: {httpGet: {path: /health, port: 8001}, initialDelaySeconds: 15, periodSeconds: 20}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: user-service
-  namespace: maker-platform
-spec:
-  selector: {app: user-service}
-  ports: [{port: 8001, targetPort: 8001}]
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: product-service
-  namespace: maker-platform
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: product-service
-  template:
-    metadata:
-      labels:
-        app: product-service
-    spec:
-      containers:
-        - name: product-service
-          image: maker-product-service:dev
-          imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8002}]
-          env:
-            - {name: MONGO_URI, valueFrom: {configMapKeyRef: {name: maker-config, key: PRODUCT_MONGO_URI}}}
-            - {name: REDIS_URL, valueFrom: {configMapKeyRef: {name: maker-config, key: REDIS_URL}}}
-            - {name: JWT_SECRET, valueFrom: {secretKeyRef: {name: maker-secrets, key: JWT_SECRET}}}
-            - {name: SERVICE_TOKEN, valueFrom: {configMapKeyRef: {name: maker-config, key: SERVICE_TOKEN}}}
-            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector:4317"}
-          resources:
-            requests: {cpu: 500m, memory: 512Mi}
-            limits: {cpu: 1500m, memory: 1536Mi}
-          readinessProbe: {httpGet: {path: /health, port: 8002}, initialDelaySeconds: 5, periodSeconds: 10}
-          livenessProbe: {httpGet: {path: /health, port: 8002}, initialDelaySeconds: 15, periodSeconds: 20}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: product-service
-  namespace: maker-platform
-spec:
-  selector: {app: product-service}
-  ports: [{port: 8002, targetPort: 8002}]
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cart-service
-  namespace: maker-platform
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: cart-service
-  template:
-    metadata:
-      labels:
-        app: cart-service
-    spec:
-      containers:
-        - name: cart-service
-          image: maker-cart-service:dev
-          imagePullPolicy: IfNotPresent
-          ports: [{containerPort: 8006}]
-          env:
-            - {name: MONGO_URI, valueFrom: {configMapKeyRef: {name: maker-config, key: CART_MONGO_URI}}}
-            - {name: REDIS_URL, value: "redis://redis:6379/1"}
-            - {name: JWT_SECRET, valueFrom: {secretKeyRef: {name: maker-secrets, key: JWT_SECRET}}}
-            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector:4317"}
-          resources:
-            requests: {cpu: 200m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 512Mi}
-          readinessProbe: {httpGet: {path: /health, port: 8006}, initialDelaySeconds: 5, periodSeconds: 10}
-          livenessProbe: {httpGet: {path: /health, port: 8006}, initialDelaySeconds: 15, periodSeconds: 20}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: cart-service
-  namespace: maker-platform
-spec:
-  selector: {app: cart-service}
-  ports: [{port: 8006, targetPort: 8006}]
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: order-service
-  namespace: maker-platform
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
       app: order-service
   template:
     metadata:
@@ -309,7 +601,7 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: maker-order-service:dev
+          image: madhu4011/order-service:latest
           imagePullPolicy: IfNotPresent
           ports: [{containerPort: 8003}]
           env:
@@ -319,8 +611,8 @@ spec:
             - {name: SERVICE_TOKEN, valueFrom: {configMapKeyRef: {name: maker-config, key: SERVICE_TOKEN}}}
             - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector:4317"}
           resources:
-            requests: {cpu: 300m, memory: 512Mi}
-            limits: {cpu: 1000m, memory: 1024Mi}
+            requests: {cpu: 20m, memory: 50Mi}
+            limits: {cpu: 150m, memory: 200Mi}
           readinessProbe: {httpGet: {path: /health, port: 8003}, initialDelaySeconds: 5, periodSeconds: 10}
           livenessProbe: {httpGet: {path: /health, port: 8003}, initialDelaySeconds: 15, periodSeconds: 20}
 ---
@@ -338,7 +630,6 @@ kind: Deployment
 metadata:
   name: payment-service
   namespace: maker-platform
-spec:
   replicas: 1
   selector:
     matchLabels:
@@ -350,7 +641,6 @@ spec:
     spec:
       containers:
         - name: payment-service
-          image: maker-payment-service:dev
           imagePullPolicy: IfNotPresent
           ports: [{containerPort: 8004}]
           env:
@@ -360,8 +650,8 @@ spec:
             - {name: SERVICE_TOKEN, valueFrom: {configMapKeyRef: {name: maker-config, key: SERVICE_TOKEN}}}
             - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector:4317"}
           resources:
-            requests: {cpu: 200m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 512Mi}
+            requests: {cpu: 20m, memory: 40Mi}
+            limits: {cpu: 150m, memory: 200Mi}
           readinessProbe: {httpGet: {path: /health, port: 8004}, initialDelaySeconds: 5, periodSeconds: 10}
           livenessProbe: {httpGet: {path: /health, port: 8004}, initialDelaySeconds: 15, periodSeconds: 20}
 ---
@@ -391,7 +681,7 @@ spec:
     spec:
       containers:
         - name: review-service
-          image: maker-review-service:dev
+          image: madhu4011/review-service:latest
           imagePullPolicy: IfNotPresent
           ports: [{containerPort: 8007}]
           env:
@@ -399,15 +689,14 @@ spec:
             - {name: JWT_SECRET, valueFrom: {secretKeyRef: {name: maker-secrets, key: JWT_SECRET}}}
             - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector:4317"}
           resources:
-            requests: {cpu: 200m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 512Mi}
+            requests: {cpu: 20m, memory: 40Mi}
+            limits: {cpu: 150m, memory: 200Mi}
           readinessProbe: {httpGet: {path: /health, port: 8007}, initialDelaySeconds: 5, periodSeconds: 10}
           livenessProbe: {httpGet: {path: /health, port: 8007}, initialDelaySeconds: 15, periodSeconds: 20}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: review-service
   namespace: maker-platform
 spec:
   selector: {app: review-service}
@@ -419,7 +708,6 @@ metadata:
   name: forum-service
   namespace: maker-platform
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: forum-service
@@ -430,7 +718,7 @@ spec:
     spec:
       containers:
         - name: forum-service
-          image: maker-forum-service:dev
+          image: madhu4011/forum-service:latest
           imagePullPolicy: IfNotPresent
           ports: [{containerPort: 8005}]
           env:
@@ -438,8 +726,8 @@ spec:
             - {name: JWT_SECRET, valueFrom: {secretKeyRef: {name: maker-secrets, key: JWT_SECRET}}}
             - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector:4317"}
           resources:
-            requests: {cpu: 200m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 512Mi}
+            requests: {cpu: 20m, memory: 40Mi}
+            limits: {cpu: 150m, memory: 200Mi}
           readinessProbe: {httpGet: {path: /health, port: 8005}, initialDelaySeconds: 5, periodSeconds: 10}
           livenessProbe: {httpGet: {path: /health, port: 8005}, initialDelaySeconds: 15, periodSeconds: 20}
 ---
@@ -472,8 +760,8 @@ spec:
           image: nginx:1.25-alpine
           ports: [{containerPort: 8080}]
           resources:
-            requests: {cpu: 200m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 512Mi}
+            requests: {cpu: 10m, memory: 30Mi}
+            limits: {cpu: 100m, memory: 128Mi}
           readinessProbe: {httpGet: {path: /health, port: 8080}, initialDelaySeconds: 3, periodSeconds: 8}
           livenessProbe: {httpGet: {path: /health, port: 8080}, initialDelaySeconds: 10, periodSeconds: 15}
           volumeMounts:
@@ -481,7 +769,6 @@ spec:
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
       volumes:
-        - name: nginx-conf
           configMap:
             name: nginx-gateway-config
 ---
@@ -493,7 +780,6 @@ metadata:
 spec:
   type: LoadBalancer
   selector: {app: gateway}
-  ports: [{port: 8080, targetPort: 8080}]
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -501,6 +787,7 @@ metadata:
   name: nginx-exporter
   namespace: maker-platform
 spec:
+  # Set the number of desired replicas for nginx-exporter here
   replicas: 1
   selector:
     matchLabels:
@@ -516,8 +803,8 @@ spec:
           args: ["-nginx.scrape-uri=http://gateway:8080/nginx_status"]
           ports: [{containerPort: 9113}]
           resources:
-            requests: {cpu: 50m, memory: 64Mi}
-            limits: {cpu: 200m, memory: 256Mi}
+            requests: {cpu: 25m, memory: 32Mi}
+            limits: {cpu: 50m, memory: 64Mi}
 ---
 apiVersion: v1
 kind: Service
@@ -534,7 +821,7 @@ metadata:
   name: prometheus
   namespace: maker-platform
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: prometheus
@@ -549,12 +836,11 @@ spec:
           args: ["--config.file=/etc/prometheus/prometheus.yml"]
           ports: [{containerPort: 9090}]
           resources:
-            requests: {cpu: 100m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 768Mi}
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 100m, memory: 64Mi}
           volumeMounts:
             - name: prometheus-config
               mountPath: /etc/prometheus/prometheus.yml
-              subPath: prometheus.yml
       volumes:
         - name: prometheus-config
           configMap:
@@ -566,7 +852,6 @@ metadata:
   name: prometheus
   namespace: maker-platform
 spec:
-  selector: {app: prometheus}
   ports: [{port: 9090, targetPort: 9090}]
 ---
 apiVersion: apps/v1
@@ -575,7 +860,7 @@ metadata:
   name: grafana
   namespace: maker-platform
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: grafana
@@ -593,8 +878,8 @@ spec:
             - {name: GF_SECURITY_ADMIN_PASSWORD, value: "admin"}
             - {name: GF_USERS_ALLOW_SIGN_UP, value: "false"}
           resources:
-            requests: {cpu: 100m, memory: 256Mi}
-            limits: {cpu: 500m, memory: 768Mi}
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 100m, memory: 64Mi}
           volumeMounts:
             - name: grafana-datasources
               mountPath: /etc/grafana/provisioning/datasources/datasource.yml
@@ -623,7 +908,6 @@ spec:
   ports: [{port: 3000, targetPort: 3000}]
 ---
 apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
 metadata:
   name: product-service-hpa
   namespace: maker-platform
@@ -635,7 +919,6 @@ spec:
   minReplicas: 1
   maxReplicas: 6
   metrics:
-    - type: Resource
       resource:
         name: cpu
         target:
@@ -683,7 +966,6 @@ spec:
             matchExpressions:
               - key: app
                 operator: In
-                values: [user-service, product-service, cart-service, order-service, payment-service, review-service, forum-service]
       ports: [{port: 27017}]
 ---
 apiVersion: networking.k8s.io/v1
@@ -696,7 +978,6 @@ spec:
     matchLabels:
       app: redis
   ingress:
-    - from:
         - podSelector:
             matchExpressions:
               - key: app
@@ -727,7 +1008,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-nginx-exporter-to-gateway
-  namespace: maker-platform
 spec:
   podSelector:
     matchLabels:

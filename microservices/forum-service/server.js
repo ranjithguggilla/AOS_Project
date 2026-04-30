@@ -8,13 +8,38 @@ const client = require('prom-client');
 
 const app = express();
 const register = new client.Registry();
-client.collectDefaultMetrics({ register });
+client.collectDefaultMetrics({ register, labels: { service: 'forum-service' } });
 const httpRequestDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   help: 'HTTP request duration in seconds',
   labelNames: ['service', 'method', 'route', 'status_code'],
   registers: [register],
 });
+
+// Swagger setup
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Forum Service API',
+      version: '1.0.0',
+      description: 'API documentation for the forum-service',
+    },
+    servers: [
+      {
+        url: 'http://localhost:8005',
+        description: 'Local server',
+      },
+    ],
+  },
+  apis: ['./routes/*.js'],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(cors());
 app.use(express.json());

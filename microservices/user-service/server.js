@@ -10,7 +10,7 @@ const User = require('./models/User');
 
 const app = express();
 const register = new client.Registry();
-client.collectDefaultMetrics({ register });
+client.collectDefaultMetrics({ register, labels: { service: 'user-service' } });
 const httpRequestDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   help: 'HTTP request duration in seconds',

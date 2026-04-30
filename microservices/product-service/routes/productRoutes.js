@@ -1,10 +1,23 @@
+// Expose Prometheus metrics endpoint
+const promClient = require('prom-client');
 const express = require('express');
 const Product = require('../models/Product');
 const Component = require('../models/Component');
 const { protect, admin, serviceAuth } = require('../middleware/auth');
 const { cacheMiddleware, invalidateCache, redis } = require('../middleware/cache');
 
+const productViewCounter = new promClient.Counter({
+  name: 'product_view_total',
+  help: 'Total number of product views',
+  labelNames: ['product_id'],
+});
+
 const router = express.Router();
+
+router.get('/metrics', async (req, res) => {
+  res.set('Content-Type', promClient.register.contentType);
+  res.end(await promClient.register.metrics());
+});
 
 router.get('/', cacheMiddleware('products'), async (req, res) => {
   try {
@@ -102,6 +115,7 @@ router.get('/:id', cacheMiddleware('product'), async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
+    productViewCounter.inc({ product_id: String(product._id) });
     res.json(product);
   } catch (err) {
     res.status(500).json({ message: err.message });
