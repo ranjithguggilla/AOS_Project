@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Row, Col, Image, ListGroup, Form } from 'react-bootstrap';
 import axios from 'axios';
 import Loader from '../components/Loader';
@@ -37,8 +37,10 @@ interface CustomizeResult {
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { userInfo } = useAuth();
   const { addToCart } = useCart();
+  const loginPath = `/login?redirect=${encodeURIComponent(`/product/${id ?? ''}`)}`;
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,6 +132,10 @@ export default function ProductPage() {
   const handleAddToCart = async () => {
     if (!product) return;
     setMsg('');
+    if (!userInfo) {
+      navigate(loginPath);
+      return;
+    }
     try {
       let unitPrice = product.price;
       let customization: CartCustomization | undefined;
@@ -155,7 +161,7 @@ export default function ProductPage() {
         };
       }
 
-      addToCart({
+      const added = addToCart({
         productId: product._id,
         cartLineId,
         name: product.name,
@@ -164,7 +170,7 @@ export default function ProductPage() {
         qty,
         ...(customization ? { customization } : {}),
       });
-      setMsg('Added to cart!');
+      setMsg(added ? 'Added to cart!' : 'Please sign in to continue.');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } }; message?: string };
       setMsg(err.response?.data?.message || err.message || 'Could not add to cart');
@@ -235,10 +241,18 @@ export default function ProductPage() {
                 </ListGroup.Item>
               )}
               <ListGroup.Item>
-                <GlassButton className="w-100" disabled={product.countInStock === 0} onClick={() => void handleAddToCart()}>Add to Cart</GlassButton>
+                <GlassButton className="w-100" disabled={product.countInStock === 0} onClick={() => void handleAddToCart()}>
+                  {userInfo ? 'Add to Cart' : 'Sign in to Add to Cart'}
+                </GlassButton>
               </ListGroup.Item>
             </ListGroup>
           </GlassSurface>
+          {!userInfo && (
+            <Message variant="warning">
+              To protect your account and order history, please <Link to={loginPath}>sign in</Link> or{' '}
+              <Link to="/register">create an account</Link> before adding items to cart.
+            </Message>
+          )}
           {msg && <Message variant="info">{msg}</Message>}
         </Col>
       </Row>

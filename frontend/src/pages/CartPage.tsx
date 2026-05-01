@@ -91,12 +91,16 @@ export default function CartPage() {
   const { userInfo } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [address, setAddress] = useState(shippingAddress.address);
-  const [city, setCity] = useState(shippingAddress.city);
-  const [postalCode, setPostalCode] = useState(shippingAddress.postalCode);
-  const [country, setCountry] = useState(shippingAddress.country);
+  // Start empty so checkout does not force old localStorage values.
+  // Users can optionally load their previously saved address.
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [country, setCountry] = useState('');
   const [method, setMethod] = useState(paymentMethod);
   const [error, setError] = useState('');
+  const hasSavedShippingAddress = [shippingAddress.address, shippingAddress.city, shippingAddress.postalCode, shippingAddress.country]
+    .some((v) => Boolean(v?.trim()));
 
   const subtotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = subtotal > 100 ? 0 : 10;
@@ -173,11 +177,71 @@ export default function CartPage() {
         {step >= 2 && (
           <div className="mt-4">
             <h4>Shipping</h4>
+            {hasSavedShippingAddress && (
+              <div className="mb-3 d-flex flex-wrap gap-2">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  onClick={() => {
+                    setAddress(shippingAddress.address || '');
+                    setCity(shippingAddress.city || '');
+                    setPostalCode(shippingAddress.postalCode || '');
+                    setCountry(shippingAddress.country || '');
+                  }}
+                >
+                  Use previously saved address
+                </Button>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={() => {
+                    setAddress('');
+                    setCity('');
+                    setPostalCode('');
+                    setCountry('');
+                  }}
+                >
+                  Clear form
+                </Button>
+              </div>
+            )}
             <Form>
-              <Form.Group className="mb-2"><Form.Label>Address</Form.Label><Form.Control value={address} onChange={e => setAddress(e.target.value)} /></Form.Group>
-              <Form.Group className="mb-2"><Form.Label>City</Form.Label><Form.Control value={city} onChange={e => setCity(e.target.value)} /></Form.Group>
-              <Form.Group className="mb-2"><Form.Label>Postal Code</Form.Label><Form.Control value={postalCode} onChange={e => setPostalCode(e.target.value)} /></Form.Group>
-              <Form.Group className="mb-2"><Form.Label>Country</Form.Label><Form.Control value={country} onChange={e => setCountry(e.target.value)} /></Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label>Address</Form.Label>
+                <Form.Control
+                  name="address"
+                  autoComplete="shipping street-address"
+                  value={address}
+                  onChange={e => setAddress(e.target.value)}
+                />
+              </Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label>City</Form.Label>
+                <Form.Control
+                  name="city"
+                  autoComplete="shipping address-level2"
+                  value={city}
+                  onChange={e => setCity(e.target.value)}
+                />
+              </Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label>Postal Code</Form.Label>
+                <Form.Control
+                  name="postalCode"
+                  autoComplete="shipping postal-code"
+                  value={postalCode}
+                  onChange={e => setPostalCode(e.target.value)}
+                />
+              </Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label>Country</Form.Label>
+                <Form.Control
+                  name="country"
+                  autoComplete="shipping country-name"
+                  value={country}
+                  onChange={e => setCountry(e.target.value)}
+                />
+              </Form.Group>
             </Form>
             <h4 className="mt-3">Payment Method</h4>
             <Form.Check type="radio" label="Stripe Sandbox" id="stripe" name="payment" value="stripe_sandbox" checked={method === 'stripe_sandbox'} onChange={e => setMethod(e.target.value)} />
