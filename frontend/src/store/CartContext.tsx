@@ -53,8 +53,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { localStorage.setItem('cartItems', JSON.stringify(cartItems)); }, [cartItems]);
 
+
   useEffect(() => {
-    // Keep cart/order details account-bound for a secure checkout experience.
+    // When user logs out, clear cart and related info
     if (!userInfo) {
       setCartItems([]);
       setShippingAddress({ address: '', city: '', postalCode: '', country: '' });
@@ -62,7 +63,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('cartItems');
       localStorage.removeItem('shippingAddress');
       localStorage.removeItem('paymentMethod');
+      return;
     }
+    // When user logs in, fetch their cart from backend
+    const fetchCart = async () => {
+      try {
+        const { data } = await axios.get(`/api/cart/${userInfo._id}`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        setCartItems(normalizeCartItems(data.items));
+      } catch (err) {
+        setCartItems([]);
+      }
+    };
+    fetchCart();
   }, [userInfo]);
 
   const authHeader = userInfo ? { Authorization: `Bearer ${userInfo.token}` } : {};
