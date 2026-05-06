@@ -4,6 +4,7 @@
 button, .btn {
   transition: background 0.22s, color 0.22s, box-shadow 0.22s, transform 0.18s;
   box-shadow: 0 2px 8px rgba(30, 64, 175, 0.07);
+  border-radius: 8px;
 }
 button:hover, .btn:hover, button:focus, .btn:focus {
   background: linear-gradient(90deg, #60a5fa 0%, #a78bfa 100%);
@@ -37,11 +38,14 @@ a:hover::after, .link:hover::after {
 
 /* Card shadow and lift effect */
 .card, .glass-surface {
-  transition: box-shadow 0.22s, transform 0.18s;
+  transition: box-shadow 0.22s, transform 0.18s, border-color 0.18s;
+  border: 1px solid #e0e7ef;
+  border-radius: 14px;
 }
 .card:hover, .glass-surface:hover {
   box-shadow: 0 8px 32px rgba(59, 130, 246, 0.13), 0 1.5px 6px rgba(0,0,0,0.04);
   transform: translateY(-4px) scale(1.01);
+  border-color: #a5b4fc;
 }
 
 /* Fade-in animation for main content */
@@ -69,9 +73,9 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   background:
-    radial-gradient(1200px 420px at 10% -15%, rgba(66, 153, 225, 0.18), transparent 60%),
-    radial-gradient(1200px 420px at 90% -20%, rgba(236, 72, 153, 0.16), transparent 60%),
-    linear-gradient(180deg, #f5f7fb 0%, #edf1f8 100%);
+    radial-gradient(1200px 420px at 10% -15%, rgba(66, 153, 225, 0.12), transparent 60%),
+    radial-gradient(1200px 420px at 90% -20%, rgba(236, 72, 153, 0.10), transparent 60%),
+    linear-gradient(180deg, #f7fafd 0%, #f1f5fa 100%);
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
