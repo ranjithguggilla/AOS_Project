@@ -53,7 +53,7 @@ export default function Header() {
           <div className="navbar-shell-end d-flex align-items-center justify-content-end flex-shrink-0">
           <Navbar.Toggle aria-controls="site-nav-collapse" />
           <Navbar.Collapse id="site-nav-collapse" className="nav-collapse-balanced">
-            <div className="nav-center-cluster d-lg-none w-100">{primaryNav}</div>
+            {/* Removed duplicate nav-center-cluster for mobile to avoid double Home/Shop */}
             <Nav className="nav-end-cluster align-items-lg-center">
               <Nav.Link
                 as={Link}
