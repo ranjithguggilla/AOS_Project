@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent, type ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
-// Removed unused imports: Row, Col, Form, Button, Card, Badge, ListGroup
+import { Row, Col, Form, Button, Card, Badge, ListGroup } from 'react-bootstrap';
 import axios from 'axios';
 import { useAuth } from '../store/AuthContext';
 import Message from '../components/Message';
@@ -106,7 +106,7 @@ export default function ProfilePage() {
       .finally(() => setOrdersLoading(false));
   }, [userInfo?.token]);
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
     try {
       await axios.put('/api/users/profile', { name, email, ...(password ? { password } : {}) }, { headers });
@@ -142,18 +142,22 @@ export default function ProfilePage() {
         <Form onSubmit={handleUpdate}>
           <Form.Group className="mb-2">
             <Form.Label>Name</Form.Label>
-            <Form.Control value={name} onChange={(e) => setName(e.target.value)} />
+            <Form.Control value={name} onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)} />
           </Form.Group>
           <Form.Group className="mb-2">
             <Form.Label>Email</Form.Label>
-            <Form.Control type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Form.Control
+              type="email"
+              value={email}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>New password</Form.Label>
             <Form.Control
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               placeholder="Leave blank to keep current password"
             />
           </Form.Group>
