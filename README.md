@@ -7,7 +7,7 @@
 
 **BitForge** is a full-stack **microservices** platform for a **DIY maker kits** marketplace: kits, customization, and maker workflows—not a generic retail clone. The **center of gravity is the backend**: an **nginx API gateway**, Node.js services, **MongoDB** (database-per-service boundaries), **Redis**, and **observability** (Prometheus, Grafana, Jaeger) with optional **Kubernetes** and Terraform for deployment.
 
-> **Course context:** **AOS (Advanced Operating Systems)** — **Project-3 (Kubernetes cluster management)**. This repo is a demonstrable microservices stack: **Docker Compose** locally, manifests under `k8s/`, and observability suitable for cluster operations review.
+> **Course context:** **AOS (Advanced Operating Systems)** — **Project-2 (microservices)**. This repo is a demonstrable microservices stack: **Docker Compose** locally, manifests under `k8s/`, and observability suitable for cluster operations review.
 
 ---
 
