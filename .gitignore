@@ -1,3 +1,43 @@
+<<<<<<< HEAD
+frontend/node_modules/
+frontend/dist/
+microservices/**/node_modules/
+.env
+.DS_Store
+
+# Frontend build / test artifacts
+frontend/tsconfig.tsbuildinfo
+frontend/test-results/
+
+# Terraform: keep only *.tfvars.example in version control
+infra/terraform/gke/terraform.tfvars
+**/.terraform/
+*.tfstate
+*.tfstate.*
+
+# Accidental empty artifacts (npm/playwright noise)
+frontend/maker-platform-web@0.1.0
+frontend/playwright
+node_modules
+=======
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
 frontend/node_modules/
 frontend/dist/
 microservices/**/node_modules/
@@ -21,3 +61,40 @@ infra/terraform/gke/terraform.tfvars
 frontend/maker-platform-web@0.1.0
 frontend/playwright
 node_modules
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+>>>>>>> origin/main
